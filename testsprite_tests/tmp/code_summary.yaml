@@ -1,0 +1,73 @@
+version: "2"
+type: frontend
+tech_stack:
+  - TypeScript
+  - Next.js
+  - React
+  - Supabase
+  - CSS Modules
+routes:
+  - path: /
+    file: src/app/page.tsx
+    auth_required: false
+    description: Landing page
+  - path: /login
+    file: src/app/login/page.tsx
+    auth_required: false
+    description: User login page
+  - path: /signup
+    file: src/app/signup/page.tsx
+    auth_required: false
+    description: User signup page
+  - path: /dashboard
+    file: src/app/dashboard/page.tsx
+    auth_required: true
+    description: Teacher dashboard
+  - path: /dashboard/create
+    file: src/app/dashboard/create/page.tsx
+    auth_required: true
+    description: Create homework page
+  - path: /dashboard/settings
+    file: src/app/dashboard/settings/page.tsx
+    auth_required: true
+    description: User settings page
+  - path: /hw/[id]
+    file: src/app/hw/[id]/page.tsx
+    auth_required: false
+    description: Student homework view
+features:
+  - name: User Authentication
+    description: Signup and Login with email/password
+    files:
+      - src/app/login/page.tsx
+      - src/app/signup/page.tsx
+      - src/middleware.ts
+    entry_route: /login
+    user_interactions:
+      - Enter email and password
+      - Click login/signup button
+    api_calls:
+      - method: POST
+        endpoint: /auth/v1/token
+    auth_required: false
+  - name: Teacher Dashboard
+    description: View group summaries and homework list
+    files:
+      - src/app/dashboard/page.tsx
+      - src/app/dashboard/HomeworkList.tsx
+    entry_route: /dashboard
+    user_interactions:
+      - Filter homeworks by grade
+      - Click on homework to view results
+    auth_required: true
+  - name: Homework Creation
+    description: Create new homework assignments
+    files:
+      - src/app/dashboard/create/page.tsx
+    entry_route: /dashboard/create
+    user_interactions:
+      - Enter homework title
+      - Add questions
+      - Save homework
+    auth_required: true
+known_limitations: []

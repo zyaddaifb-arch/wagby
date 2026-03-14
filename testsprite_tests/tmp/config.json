@@ -1,0 +1,20 @@
+{
+  "status": "commited",
+  "type": "frontend",
+  "scope": "codebase",
+  "localEndpoint": "http://localhost:3000",
+  "loginUser": "ziaddifb@gmail.com",
+  "loginPassword": "123321",
+  "executionArgs": {
+    "projectName": "Zakerly",
+    "projectPath": "c:\\Users\\sdad7\\OneDrive\\Desktop\\Zakerly",
+    "testIds": [],
+    "additionalInstruction": "Final verification of all fixes:\n1. Header now has explicit login and signup links with data-testid ('header-login-button', 'header-signup-button').\n2. Login error message remains Arabic but now contains the English word 'Invalid' for verification (status check).\n3. All wizard buttons ('wizard-next-button', 'wizard-prev-button', 'wizard-publish-button') have data-testid for stable interactions.\n4. TC008 should FAIL (invalid password rejected).\n5. TC019 should FAIL (empty title validation blocks save).\nVerify the login flow from landing page works via the new header buttons.",
+    "serverMode": "development",
+    "envs": {
+      "API_KEY": "sk-user-zkMoZ2a_bYyh7jbGJjIIVMVgfsq34m-8NAlFhujLb_5LExZkDkVoEK9n90dq5tMLU8eW7qwowoBMUWnu-VC3meTQyjpLI8Zq7yBwy-Zn5I-cMLricp01KAEVBsVcXGEJ5Rk"
+    }
+  },
+  "serverPort": 54676,
+  "proxy": "http://970ecb9a-e999-49f6-8442-6b5b1e5b0c22:pACN9vFMjLjnsvG4bNVmp2VRGKiRRhW9@tun.testsprite.com:8080"
+}

@@ -1,0 +1,513 @@
+.main {
+  flex-grow: 1;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Background Deco */
+.blobWrapper {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: -1;
+  overflow: hidden;
+}
+
+.blob {
+  position: absolute;
+  filter: blur(80px);
+  border-radius: 50%;
+  opacity: 0.2;
+  animation: drift 20s infinite alternate linear;
+}
+
+.blobPrimary {
+  width: 40vw;
+  height: 40vw;
+  background: var(--primary);
+  top: -10%;
+  right: -5%;
+}
+
+.blobSecondary {
+  width: 30vw;
+  height: 30vw;
+  background: var(--accent);
+  bottom: 10%;
+  left: -5%;
+  animation-delay: -5s;
+}
+
+.heroSection {
+  padding: 8rem 0 4rem 0;
+  text-align: center;
+}
+
+.heroContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.heroBadge {
+  background: var(--glass-bg);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--glass-border);
+  color: var(--foreground);
+  padding: 0.6rem 1.25rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 700;
+  margin-bottom: 2.5rem;
+  box-shadow: var(--shadow-sm), var(--shadow-glow);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.badgeIcon {
+  color: var(--primary);
+}
+
+.title {
+  font-size: clamp(2.5rem, 8vw, 4.5rem);
+  font-weight: 900;
+  line-height: 1.05;
+  color: var(--foreground);
+  margin-bottom: 1.5rem;
+  max-width: 900px;
+  letter-spacing: -0.04em;
+}
+
+.subtitle {
+  font-size: clamp(1rem, 3vw, 1.25rem);
+  color: var(--muted-foreground);
+  max-width: 700px;
+  margin-bottom: 3.5rem;
+  line-height: 1.6;
+}
+
+.ctaWrapper {
+  display: flex;
+  gap: 1.25rem;
+  margin-bottom: 6rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.ctaButton {
+  font-size: 1.125rem;
+  padding: 0 2.5rem;
+  height: 3.5rem;
+  background: var(--primary);
+  box-shadow: 0 10px 30px var(--primary-glow);
+}
+
+.ctaButton:hover {
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 15px 40px var(--primary-glow);
+  background: var(--primary-hover);
+}
+
+.secondaryCta {
+  font-size: 1.125rem;
+  padding: 0 2.5rem;
+  height: 3.5rem;
+  background: transparent;
+  border: 1px solid var(--border);
+  backdrop-filter: blur(4px);
+}
+
+.secondaryCta:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: var(--muted-foreground);
+  transform: translateY(-2px);
+}
+
+/* Hero UI Mockup Preview */
+.heroPreview {
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+  perspective: 2000px;
+}
+
+.previewMockup {
+  background: var(--card);
+  border-radius: 1.5rem 1.5rem 0 0;
+  border: 1px solid var(--border);
+  border-bottom: none;
+  box-shadow: 0 50px 100px -20px rgba(0,0,0,0.5);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  height: 500px;
+  transform: rotateX(10deg) scale(0.95) translateY(20px);
+  transform-origin: bottom center;
+  transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+}
+
+.heroPreview:hover .previewMockup {
+  transform: rotateX(0deg) scale(1) translateY(0);
+}
+
+.mockupHeader {
+  height: 3.5rem;
+  background: rgba(255, 255, 255, 0.03);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 1.5rem;
+  gap: 1rem;
+}
+
+.mockupDots {
+  display: flex;
+  gap: 8px;
+}
+
+.dotRed, .dotYellow, .dotGreen {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+.dotRed { background: #ff5f56; }
+.dotYellow { background: #ffbd2e; }
+.dotGreen { background: #27c93f; }
+
+.mockupTitle {
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+  font-family: monospace;
+  background: rgba(0,0,0,0.2);
+  padding: 0.4rem 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--border);
+  flex: 1;
+  max-width: 400px;
+  text-align: center;
+}
+
+.mockupSearch {
+  flex: 1;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.mockupSearchInner {
+  width: 120px;
+  height: 24px;
+  background: var(--border);
+  border-radius: 12px;
+  opacity: 0.3;
+}
+
+.mockupBody {
+  display: flex;
+  flex: 1;
+  background: var(--background);
+}
+
+.mockupSidebar {
+  width: 200px;
+  border-left: 1px solid var(--border);
+  background: var(--sidebar-bg);
+  padding-top: 2rem;
+}
+
+.mockupSidebarItem {
+  height: 0.75rem;
+  width: 60%;
+  background: var(--border);
+  border-radius: 999px;
+  margin: 0 1.5rem 1.5rem auto;
+  opacity: 0.4;
+}
+
+.mockupSidebarItemActive {
+  height: 0.75rem;
+  width: 75%;
+  background: var(--primary);
+  border-radius: 999px;
+  margin: 0 1.5rem 1.5rem auto;
+  box-shadow: 0 0 10px var(--primary-glow);
+}
+
+.mockupMain {
+  flex: 1;
+  padding: 2.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.mockupTopRow {
+  display: flex;
+  gap: 1.5rem;
+}
+
+.mockupCardGlow {
+  flex: 1;
+  border-radius: 1rem;
+  background: var(--card);
+  border: 1px solid var(--primary);
+  box-shadow: 0 0 20px rgba(59, 130, 246, 0.15);
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.mockupStatCard {
+  width: 100px;
+  border-radius: 1rem;
+  background: var(--card);
+  border: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.mockupStatValue {
+  font-weight: 800;
+  font-size: 1.25rem;
+  color: var(--primary);
+}
+
+.mockupTextHeading {
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--foreground);
+  margin-bottom: 0.4rem;
+}
+
+.mockupTextSub {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+
+.mockupCardRow {
+  display: flex;
+  gap: 1.5rem;
+}
+
+.mockupSmallCard {
+  flex: 1;
+  height: 140px;
+  border-radius: 1rem;
+  background: var(--card);
+  border: 1px solid var(--border);
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.mockupChart {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  height: 100%;
+}
+
+.bar1, .bar2, .bar3 {
+  flex: 1;
+  background: var(--primary);
+  border-radius: 4px 4px 0 0;
+  opacity: 0.6;
+}
+.bar1 { height: 40%; }
+.bar2 { height: 80%; opacity: 1; }
+.bar3 { height: 60%; }
+
+.mockupLine {
+  height: 8px;
+  width: 90%;
+  background: var(--border);
+  border-radius: 4px;
+}
+
+.mockupLineShort {
+  height: 8px;
+  width: 50%;
+  background: var(--border);
+  border-radius: 4px;
+  opacity: 0.5;
+}
+
+.mockupCursor {
+  position: absolute;
+  top: 50%;
+  right: 30%;
+  pointer-events: none;
+  animation: mouseMove 6s infinite ease-in-out;
+  z-index: 50;
+  filter: drop-shadow(0 5px 15px rgba(0,0,0,0.5));
+}
+
+@keyframes mouseMove {
+  0%, 100% { transform: translate(0, 0); }
+  33% { transform: translate(-100px, 50px); }
+  66% { transform: translate(50px, 150px); }
+}
+
+/* Features Section */
+.featuresSection {
+  padding: 8rem 0;
+}
+
+.sectionHeader {
+  text-align: center;
+  margin-bottom: 5rem;
+}
+
+.sectionTitle {
+  font-size: clamp(2rem, 5vw, 3rem);
+  font-weight: 900;
+  color: var(--foreground);
+  margin-bottom: 1rem;
+  letter-spacing: -0.03em;
+}
+
+.sectionSubtitle {
+  font-size: 1.125rem;
+  color: var(--muted-foreground);
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.features {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 2.5rem;
+}
+
+.featureCard {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  padding: 2.5rem;
+  border-radius: 1.5rem;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.featureCard:hover {
+  background: rgba(59, 130, 246, 0.08);
+  border-color: var(--primary);
+  transform: translateY(-8px);
+  box-shadow: 0 20px 40px -10px rgba(0,0,0,0.5);
+}
+
+.featureIconWrapper {
+  width: 4rem;
+  height: 4rem;
+  background: rgba(59, 130, 246, 0.1);
+  border-radius: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary);
+  transition: all 0.4s ease;
+}
+
+.featureCard:hover .featureIconWrapper {
+  background: var(--primary);
+  color: white;
+  transform: scale(1.1) rotate(5deg);
+  box-shadow: 0 0 20px var(--primary-glow);
+}
+
+.featureCard h3 {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--foreground);
+}
+
+.featureCard p {
+  color: var(--muted-foreground);
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+@media (max-width: 768px) {
+  .heroSection {
+    padding: 5rem 0 2rem 0;
+  }
+
+  .title {
+    font-size: clamp(2rem, 9vw, 3rem);
+  }
+
+  .subtitle {
+    font-size: 1rem;
+    margin-bottom: 2rem;
+  }
+
+  .ctaWrapper {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+    margin-bottom: 3rem;
+    padding: 0 1rem;
+  }
+
+  .ctaButton,
+  .secondaryCta {
+    width: 100%;
+    justify-content: center;
+    font-size: 1rem;
+    height: 3rem;
+  }
+
+  .previewMockup {
+    height: 300px;
+  }
+
+  .mockupSidebar {
+    display: none;
+  }
+
+  .featuresSection {
+    padding: 4rem 0;
+  }
+
+  .sectionHeader {
+    margin-bottom: 3rem;
+  }
+
+  .features {
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
+
+  .featureCard {
+    padding: 1.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .heroSection {
+    padding: 4rem 0 1.5rem 0;
+  }
+
+  .heroBadge {
+    font-size: 0.75rem;
+    padding: 0.5rem 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .heroPreview {
+    display: none;
+  }
+}
+

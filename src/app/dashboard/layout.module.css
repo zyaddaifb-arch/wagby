@@ -1,0 +1,28 @@
+.dashboardContainer {
+  display: flex;
+  min-height: 100vh;
+  width: 100%;
+}
+
+.mainWrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.mainContent {
+  flex: 1;
+  padding: 2rem;
+  background-color: var(--background);
+  overflow-y: auto;
+}
+
+@media (max-width: 768px) {
+  .mainContent {
+    padding: 1.25rem 1rem;
+    /* Space for fixed bottom nav bar */
+    padding-bottom: calc(5rem + env(safe-area-inset-bottom, 0px));
+  }
+}
+

@@ -1,0 +1,64 @@
+.switchContainer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  cursor: pointer;
+  user-select: none;
+  width: 100%;
+}
+
+.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.label {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--foreground);
+}
+
+.switchRow {
+  position: relative;
+}
+
+.hiddenInput {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.track {
+  width: 44px;
+  height: 24px;
+  background-color: var(--border);
+  border-radius: 12px;
+  position: relative;
+  transition: background-color 0.2s ease-out;
+}
+
+.track.checked {
+  background-color: var(--primary);
+}
+
+.thumb {
+  width: 20px;
+  height: 20px;
+  background-color: white;
+  border-radius: 50%;
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.track.checked .thumb {
+  transform: translateX(20px);
+}
+
+[data-theme='dark'] .thumb {
+  background-color: #f8fafc;
+}

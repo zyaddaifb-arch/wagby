@@ -1,0 +1,416 @@
+.layout {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--background);
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* Base minimal background grid */
+.layout::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: 
+    linear-gradient(var(--border) 1px, transparent 1px),
+    linear-gradient(90deg, var(--border) 1px, transparent 1px);
+  background-size: 40px 40px;
+  opacity: 0.15;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.main {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem;
+  z-index: 10;
+}
+
+/* General Container for Student Cards */
+.cardContainer {
+  width: 100%;
+  max-width: 650px;
+  animation: fadeIn 0.5s ease-out;
+}
+
+.brand {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.brandLogo {
+  font-size: 2.5rem;
+  font-weight: 900;
+  color: var(--primary);
+  margin-bottom: 0.5rem;
+  letter-spacing: -0.05em;
+}
+
+.brandTitle {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: var(--foreground);
+}
+
+.brandSubtitle {
+  color: var(--muted-foreground);
+  font-size: 1.1rem;
+  margin-top: 0.75rem;
+  font-weight: 500;
+}
+
+/* Forms and Buttons */
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  margin-top: 1rem;
+}
+
+.actionBtn {
+  height: 3.5rem !important;
+  font-size: 1.1rem !important;
+  font-weight: 800 !important;
+  border-radius: 1rem !important;
+}
+
+/* Quiz UI */
+.quizHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.questionCount {
+  font-size: 0.9rem;
+  color: var(--muted-foreground);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.questionText {
+  font-size: 1.5rem;
+  font-weight: 800;
+  line-height: 1.6;
+  margin-bottom: 2.5rem;
+  color: var(--foreground);
+  text-align: center;
+}
+
+.optionsGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.optionLabel {
+  display: flex;
+  align-items: center;
+  padding: 1.4rem 2rem;
+  border-radius: 1.25rem;
+  border: 2px solid var(--input-border);
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  background-color: var(--input);
+}
+
+.optionLabel:hover {
+  transform: translateX(-6px) scale(1.01);
+  border-color: var(--primary);
+  background-color: rgba(37, 99, 235, 0.08);
+  box-shadow: var(--shadow-md);
+}
+
+.optionInput {
+  margin-left: 1.5rem;
+  width: 1.5rem;
+  height: 1.5rem;
+  accent-color: var(--primary);
+}
+
+.optionText {
+  font-weight: 700;
+  font-size: 1.125rem;
+  color: var(--foreground);
+}
+
+/* Selected Option State */
+.optionLabel:has(input:checked) {
+  border-color: var(--primary);
+  background-color: rgba(37, 99, 235, 0.12);
+  box-shadow: 0 0 0 1px var(--primary), var(--shadow-glow);
+  transform: translateX(-6px);
+}
+
+.quizFooter {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 2.5rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--border);
+}
+
+/* Results UI */
+.resultCircle {
+  width: 14rem;
+  height: 14rem;
+  border-radius: 3rem;
+  border: 4px solid var(--success);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 3rem;
+  background: linear-gradient(145deg, rgba(255,255,255,0.05) 0%, rgba(0,0,0,0.3) 100%);
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5), 0 0 50px rgba(16, 185, 129, 0.15);
+  transform: rotate(-2deg);
+  transition: transform 0.3s ease;
+}
+.resultCircle:hover {
+  transform: rotate(0deg) scale(1.05);
+}
+
+.scoreValue {
+  font-size: 5rem;
+  font-weight: 900;
+  color: var(--success);
+  line-height: 1;
+  letter-spacing: -0.05em;
+  text-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+.scoreTotal {
+  font-size: 1.4rem;
+  color: var(--muted-foreground);
+  font-weight: 800;
+  margin-top: 0.5rem;
+}
+
+.resultTitle {
+  text-align: center;
+  font-size: 2.25rem;
+  font-weight: 900;
+  margin-bottom: 0.75rem;
+  letter-spacing: -0.03em;
+  color: var(--foreground);
+}
+
+.resultSubtitle {
+  text-align: center;
+  color: var(--muted-foreground);
+  font-size: 1.2rem;
+  margin-bottom: 3rem;
+  font-weight: 600;
+  max-width: 400px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.rankingBox {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border);
+  border-radius: 1.5rem;
+  padding: 2rem;
+  text-align: center;
+  margin-bottom: 3rem;
+  box-shadow: var(--shadow-sm);
+  position: relative;
+  overflow: hidden;
+}
+
+.rankingBox::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--primary), transparent);
+  opacity: 0.5;
+}
+
+.rankingLabel {
+  font-size: 0.95rem;
+  color: var(--muted-foreground);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 0.75rem;
+}
+
+.rankingPosition {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 0.5rem;
+  color: var(--foreground);
+}
+
+.rankingPosition span {
+  font-size: 3rem;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.rankingPosition small {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--muted-foreground);
+}
+
+.shareBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+.instructionsText {
+  text-align: center;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--foreground);
+  margin-bottom: 0.5rem;
+}
+
+/* Detailed Review Section */
+.reviewSection {
+  margin-top: 4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.reviewSectionTitle {
+  font-size: 1.5rem;
+  font-weight: 900;
+  margin-bottom: 1.5rem;
+  color: var(--foreground);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.reviewSectionTitle::before {
+  content: '';
+  width: 0.5rem;
+  height: 1.5rem;
+  background: var(--primary);
+  border-radius: 1rem;
+}
+
+.reviewQuestionCard {
+  background-color: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 1.25rem;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.reviewQuestionCard:hover {
+  transform: translateY(-4px);
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: var(--shadow-lg);
+}
+
+.reviewQuestionText {
+  font-weight: 800;
+  font-size: 1.25rem;
+  line-height: 1.5;
+}
+
+.answerGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+}
+
+.answerBox {
+  padding: 1rem 1.25rem;
+  border-radius: 0.75rem;
+  border: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.answerLabel {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+  font-weight: 800;
+  letter-spacing: 0.05em;
+}
+
+.answerValue {
+  font-weight: 700;
+  font-size: 1.05rem;
+}
+
+.statusIndicator {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-weight: 900;
+  padding: 0.6rem 1.25rem;
+  border-radius: 2rem;
+  width: fit-content;
+  font-size: 0.9rem;
+  letter-spacing: 0.02em;
+}
+
+.correct {
+  color: #10b981;
+  background-color: rgba(16, 185, 129, 0.1);
+}
+
+.incorrect {
+  color: #ef4444;
+  background-color: rgba(239, 68, 68, 0.1);
+}
+
+.explanationBox {
+  margin-top: 0.5rem;
+  padding: 1.5rem;
+  background-color: rgba(59, 130, 246, 0.05);
+  border-right: 4px solid var(--primary);
+  border-radius: 0.5rem 1rem 1rem 0.5rem;
+}
+
+.explanationTitle {
+  font-size: 0.95rem;
+  font-weight: 900;
+  color: var(--primary);
+  margin-bottom: 0.5rem;
+  display: block;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.explanationText {
+  font-size: 1.05rem;
+  line-height: 1.7;
+  color: var(--foreground);
+  font-weight: 500;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 640px) {
+  .answerGrid {
+    grid-template-columns: 1fr;
+  }
+}

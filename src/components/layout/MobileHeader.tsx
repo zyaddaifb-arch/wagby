@@ -1,0 +1,34 @@
+"use client";
+import React from 'react';
+import Link from 'next/link';
+import styles from './MobileHeader.module.css';
+
+interface MobileHeaderProps {
+  onMenuOpen: () => void;
+}
+
+const MenuIcon = () => (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="3" y1="6" x2="21" y2="6"/>
+    <line x1="3" y1="12" x2="21" y2="12"/>
+    <line x1="3" y1="18" x2="21" y2="18"/>
+  </svg>
+);
+
+export function MobileHeader({ onMenuOpen }: MobileHeaderProps) {
+  return (
+    <header className={styles.mobileHeader}>
+      <button
+        className={styles.menuBtn}
+        onClick={onMenuOpen}
+        aria-label="فتح القائمة"
+      >
+        <MenuIcon />
+      </button>
+      <Link href="/dashboard" className={styles.logoLink}>
+        <img src="/logo.png" alt="Zakerly" className={styles.logo} />
+      </Link>
+      <div className={styles.spacer} aria-hidden="true" />
+    </header>
+  );
+}
