@@ -84,7 +84,7 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
           <button
             className={styles.closeBtn}
             onClick={onClose}
-            aria-label="إغلاق القائمة"
+            aria-label="إغلاق  القائمة"
           >
             <Icons.Close />
           </button>
