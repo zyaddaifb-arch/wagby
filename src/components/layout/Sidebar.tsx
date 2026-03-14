@@ -80,11 +80,6 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
 
       <aside className={`${styles.sidebar} ${isOpen ? styles.sidebarOpen : ''}`}>
         <div className={styles.logo}>
-          <Link href="/dashboard" onClick={onClose}>
-            <div className={styles.logoWrapper}>
-              <img src="/logo.png" alt="Zakerly" className={styles.logoImage} />
-            </div>
-          </Link>
           {/* Close button inside sidebar on mobile */}
           <button
             className={styles.closeBtn}

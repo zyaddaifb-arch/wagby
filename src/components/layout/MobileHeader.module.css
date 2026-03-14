@@ -42,17 +42,8 @@
     transform: scale(0.93);
   }
 
-  .logoLink {
-    display: flex;
-    align-items: center;
-    text-decoration: none;
-  }
-
-  .logo {
-    height: 2.25rem;
-    width: auto;
-    object-fit: contain;
-    filter: drop-shadow(0 0 8px var(--primary-glow));
+  .logoPlaceholder {
+    flex: 1;
   }
 
   .spacer {

@@ -9,9 +9,7 @@ export function Header() {
     <header className={styles.header}>
       <div className={`container ${styles.container}`}>
         <div className={styles.logo}>
-          <Link href="/dashboard">
-            <Image src="/logo.png" alt="ذاكرلي" width={120} height={40} className={styles.logoImage} priority />
-          </Link>
+          {/* Logo removed */}
         </div>
         <nav className={styles.nav}>
           <Link href="/login" style={{ marginRight: '1rem' }}>

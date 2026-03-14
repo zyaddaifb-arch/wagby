@@ -23,19 +23,8 @@
   letter-spacing: -0.025em;
 }
 
-.logoImage {
-  height: 2.5rem;
-  width: auto;
-  object-fit: contain;
-  transition: transform 0.3s ease;
-}
-
-.logoImage:hover {
-  transform: scale(1.05);
-}
-
-.logo:hover {
-  opacity: 0.9;
+.logo {
+  flex: 1;
 }
 
 .nav {
@@ -50,9 +39,7 @@
     gap: 0.5rem;
   }
 
-  .logoImage {
-    height: 2rem;
-  }
+
 
   .nav {
     gap: 0.5rem;

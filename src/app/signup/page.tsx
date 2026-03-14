@@ -121,7 +121,7 @@ export default function SignupPage() {
       <div className={styles.featuresPanel}>
         <div className={styles.featuresPanelInner}>
           <div className={`${styles.brandLogo} animate-fade-in-up`}>
-            <img src="/logo.png" alt="Zakerly" className={styles.brandLogoImg} />
+            {/* Logo removed */}
             <span className={styles.brandLogoText}>ذاكرلي</span>
           </div>
           

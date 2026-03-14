@@ -25,9 +25,7 @@ export function MobileHeader({ onMenuOpen }: MobileHeaderProps) {
       >
         <MenuIcon />
       </button>
-      <Link href="/dashboard" className={styles.logoLink}>
-        <img src="/logo.png" alt="Zakerly" className={styles.logo} />
-      </Link>
+      <div className={styles.logoPlaceholder} />
       <div className={styles.spacer} aria-hidden="true" />
     </header>
   );
