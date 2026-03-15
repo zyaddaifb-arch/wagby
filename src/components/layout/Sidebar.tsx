@@ -97,7 +97,7 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
     };
   }, []);
 
-  const displayName = profile?.full_name || 'المدرس ';
+  const displayName = profile?.full_name || 'المدرس';
   const initial = displayName.charAt(0);
 
   return (
