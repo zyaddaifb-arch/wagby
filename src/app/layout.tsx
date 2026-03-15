@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Cairo } from "next/font/google";
 import "./globals.css";
+import { WebMCPRegistrar } from "@/components/WebMCPRegistrar";
 
 const cairo = Cairo({
   variable: "--font-cairo",
@@ -24,6 +25,7 @@ export default function RootLayout({
   return (
     <html lang="ar" dir="rtl">
       <body className={`${cairo.variable} antialiased`}>
+        <WebMCPRegistrar />
         {children}
       </body>
     </html>

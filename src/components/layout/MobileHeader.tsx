@@ -2,6 +2,7 @@
 import React from 'react';
 import Link from 'next/link';
 import styles from './MobileHeader.module.css';
+import { WebMCPBadge } from '../WebMCPBadge';
 
 interface MobileHeaderProps {
   onMenuOpen: () => void;
@@ -25,7 +26,9 @@ export function MobileHeader({ onMenuOpen }: MobileHeaderProps) {
       >
         <MenuIcon />
       </button>
-      <div className={styles.logoPlaceholder} />
+      <div className={styles.logoPlaceholder}>
+        <WebMCPBadge />
+      </div>
       <div className={styles.spacer} aria-hidden="true" />
     </header>
   );

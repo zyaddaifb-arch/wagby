@@ -2,6 +2,7 @@ import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '../ui/Button';
+import { WebMCPBadge } from '../WebMCPBadge';
 import styles from './Header.module.css';
 
 export function Header() {
@@ -9,7 +10,7 @@ export function Header() {
     <header className={styles.header}>
       <div className={`container ${styles.container}`}>
         <div className={styles.logo}>
-          {/* Logo removed */}
+          <WebMCPBadge />
         </div>
         <nav className={styles.nav}>
           <Link href="/login" style={{ marginRight: '1rem' }}>

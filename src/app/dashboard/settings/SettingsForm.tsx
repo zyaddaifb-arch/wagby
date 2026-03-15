@@ -86,9 +86,12 @@ export function SettingsForm({ initialData }: SettingsFormProps) {
 
   const handleLogout = async () => {
     playSound('pop');
-    if (confirm('هل أنت متأكد من تسجيل الخروج؟')) {
-      await logout();
-    }
+    console.log('[SettingsForm] Initiating logout...');
+    const { createClient } = await import('@/utils/supabase/client');
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    console.log('[SettingsForm] Logged out from Supabase, redirecting...');
+    window.location.href = '/';
   };
 
   const handleDeleteAccount = async () => {
@@ -149,7 +152,23 @@ export function SettingsForm({ initialData }: SettingsFormProps) {
               key={item.id}
               onClick={() => {
                 setActiveSection(item.id);
-                document.getElementById(item.id)?.scrollIntoView({ behavior: 'smooth' });
+                console.log('[SettingsForm] Active section set to:', item.id);
+                // Wrap in setTimeout to ensure section is rendered or state is applied
+                setTimeout(() => {
+                  const element = document.getElementById(item.id);
+                  if (element) {
+                    const offset = 100; // Offset for sticky headers
+                    const elementPosition = element.getBoundingClientRect().top;
+                    const offsetPosition = elementPosition + window.pageYOffset - offset;
+                    console.log('[SettingsForm] Element found. Scrolling to:', offsetPosition);
+                    window.scrollTo({
+                      top: offsetPosition,
+                      behavior: 'smooth'
+                    });
+                  } else {
+                    console.error('[SettingsForm] Element with ID not found:', item.id);
+                  }
+                }, 100);
               }}
               className={`${styles.navItem} ${activeSection === item.id ? styles.active : ''}`}
             >
@@ -193,7 +212,11 @@ export function SettingsForm({ initialData }: SettingsFormProps) {
                   />
                 </div>
                 <div style={{ display: 'flex', gap: '1rem' }}>
-                  <Button variant="outline" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => alert('ميزة تغيير كلمة المرور ستتوفر قريباً في التحديث القادم!')}
+                    style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+                  >
                     تغيير كلمة المرور
                   </Button>
                   <Button 
