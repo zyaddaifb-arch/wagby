@@ -524,8 +524,8 @@
 
 @media (max-width: 768px) {
   .main {
-    padding: 1rem;
-    padding-top: 1.5rem;
+    padding: 0.25rem;
+    padding-top: 1rem;
   }
   
   .brandLogo {
@@ -568,12 +568,12 @@
   /* Wizard/Scroll refined for mobile */
   .quizHeaderSticky {
     margin-bottom: 1.5rem !important;
-    padding: 1rem !important;
+    padding: 0.75rem !important;
     border-radius: 1rem !important;
   }
   
   .quizCardContent {
-    padding: 2.5rem 1.25rem !important;
+    padding: 1.25rem 0.5rem !important;
   }
   
   .wizardFooter {
@@ -598,7 +598,7 @@
   }
   
   .scrollHeader {
-    padding: 2rem 1.25rem !important;
+    padding: 1.5rem 0.75rem !important;
   }
   
   .studentName {
@@ -606,11 +606,11 @@
   }
   
   .scrollQuestionHeader {
-    padding: 1rem 1.5rem !important;
+    padding: 1rem !important;
   }
   
   .scrollCardContent {
-    padding: 2.5rem 1.25rem !important;
+    padding: 1.25rem 0.5rem !important;
   }
   
   .scrollFooter {
