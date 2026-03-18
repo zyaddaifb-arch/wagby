@@ -1,7 +1,7 @@
 "use client";
 
 // Web Audio API utility for programmatic sound effects (No external files needed)
-export const playSound = (type: 'success' | 'click' | 'pop') => {
+export const playSound = (type: 'success' | 'click' | 'pop' | 'error') => {
   if (typeof window === 'undefined') return;
 
   try {
@@ -53,7 +53,18 @@ export const playSound = (type: 'success' | 'click' | 'pop') => {
       gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.05);
       
       osc.start(now);
-      osc.stop(now + 0.05);
+    } else if (type === 'error') {
+      // Low double thump
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(150, now);
+      osc.frequency.setValueAtTime(100, now + 0.1);
+      
+      gainNode.gain.setValueAtTime(0, now);
+      gainNode.gain.linearRampToValueAtTime(0.3, now + 0.05);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+      
+      osc.start(now);
+      osc.stop(now + 0.35);
     }
   } catch (e) {
     console.error("Audio playback failed", e);

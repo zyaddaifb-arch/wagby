@@ -35,9 +35,9 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
-  // MOCK AUTH for automated tests
-  const isTestBypass = request.cookies.get('sb-test-bypass')?.value === 'true'
+  // MOCK AUTH for automated tests (ONLY IN DEV MODE)
   const isDev = process.env.NODE_ENV === 'development'
+  const isTestBypass = isDev && request.cookies.get('sb-test-bypass')?.value === 'true'
 
   // Protect dashboard routes
   if (!user && !isTestBypass && request.nextUrl.pathname.startsWith('/dashboard')) {
@@ -50,7 +50,7 @@ export async function updateSession(request: NextRequest) {
   // Redirect to dashboard if logged in and accessing /login or /signup
   // Only redirect real Supabase users - mock bypass should NOT redirect away from login
   // (this prevents stale test cookies from causing redirect loops)
-  if (user && (request.nextUrl.pathname === '/login' || request.nextUrl.pathname === '/signup')) {
+  if (user && (request.nextUrl.pathname === '/' || request.nextUrl.pathname === '/login' || request.nextUrl.pathname === '/signup')) {
     const url = request.nextUrl.clone()
     url.pathname = '/dashboard'
     return NextResponse.redirect(url)

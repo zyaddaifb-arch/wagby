@@ -5,9 +5,12 @@ import { Select } from '@/components/ui/Select';
 import { getScoreColor } from '@/utils/format';
 import styles from './results.module.css';
 import { Button } from '@/components/ui/Button';
+import { gradeEssayAnswer } from '../actions';
+import { useRouter } from 'next/navigation';
 
 type Question = {
   id: string;
+  question_type?: string;
   question_text: string;
   correct_answer: string;
   option_a: string;
@@ -29,9 +32,12 @@ type Answer = {
 type Submission = {
   id: string;
   student_name: string;
+  student_phone?: string;
+  parent_phone?: string;
   score: number;
   total_questions: number;
   submitted_at: string;
+  duration?: number;
 };
 
 interface ResultsViewProps {
@@ -75,6 +81,33 @@ export function ResultsView({ submissions, questions, allAnswers, hwInfo }: Resu
   const [search, setSearch] = useState('');
   const [sortBy, setSortBy] = useState('score_desc');
   const [selectedStudent, setSelectedStudent] = useState<Submission | null>(null);
+  const [isGrading, setIsGrading] = useState(false);
+  const router = useRouter();
+
+  const isPendingGrading = (subId: string) => {
+    const subAnswers = allAnswers.filter(a => a.submission_id === subId);
+    return subAnswers.some(a => {
+      const q = questions.find(q => q.id === a.question_id);
+      return q?.question_type === 'essay' && (a.is_correct === null || a.is_correct === undefined);
+    });
+  };
+
+  const handleGrade = async (subId: string, qId: string, correct: boolean) => {
+    setIsGrading(true);
+    try {
+      const res = await gradeEssayAnswer(subId, qId, correct);
+      if (res.success) {
+        // The page will revalidate, but we might want to update local state too or just refresh
+        router.refresh();
+      } else {
+        alert('فشل في رصد الدرجة: ' + res.error);
+      }
+    } catch (err) {
+      alert('حدث خطأ أثناء رصد الدرجة.');
+    } finally {
+      setIsGrading(false);
+    }
+  };
 
   // Sorting and Ranking
   const ranked = useMemo(() =>
@@ -86,7 +119,9 @@ export function ResultsView({ submissions, questions, allAnswers, hwInfo }: Resu
     let result = [...ranked];
     if (search) {
       result = result.filter(s =>
-        s.student_name.toLowerCase().includes(search.toLowerCase())
+        s.student_name.toLowerCase().includes(search.toLowerCase()) ||
+        s.student_phone?.includes(search) ||
+        s.parent_phone?.includes(search)
       );
     }
     if (sortBy === 'score_asc') {
@@ -285,8 +320,21 @@ export function ResultsView({ submissions, questions, allAnswers, hwInfo }: Resu
                         <span style={{ color: scoreColor }}>{s.student_name.charAt(0)}</span>
                       </div>
                       <div className={styles.cardInfo}>
-                        <div className={styles.cardName}>{s.student_name}</div>
-                        <div className={styles.cardTime}>{new Date(s.submitted_at).toLocaleDateString('ar-EG')}</div>
+                        <div className={styles.cardName}>
+                          {s.student_name}
+                          {isPendingGrading(s.id) && (
+                            <span className={styles.pendingBadge}>⏳ يحتاج تصحيح</span>
+                          )}
+                        </div>
+                        <div className={styles.cardTime}>
+                          <span style={{ color: 'var(--primary)', fontWeight: 600 }}>{s.student_phone}</span>
+                          {s.parent_phone && (
+                            <span style={{ color: '#6366f1', fontWeight: 600, marginRight: '8px' }}> (لي أمر: {s.parent_phone})</span>
+                          )} • {new Date(s.submitted_at).toLocaleDateString('ar-EG')}
+                          {s.duration !== undefined && s.duration > 0 && (
+                            <> • ⏱️ {Math.floor(s.duration / 60)}:{(s.duration % 60).toString().padStart(2, '0')}</>
+                          )}
+                        </div>
                       </div>
                       <div className={styles.cardScore}>
                         <span style={{ color: scoreColor }}>{s.score}</span>
@@ -314,6 +362,13 @@ export function ResultsView({ submissions, questions, allAnswers, hwInfo }: Resu
                 <h2>تفاصيل إجابة الطالب</h2>
                 <div className={styles.modalSubHeader}>
                   <span className={styles.modalStudentName}>{selectedStudent.student_name}</span>
+                  <span style={{ color: 'var(--primary)', fontWeight: 700, marginLeft: '1rem' }}>📱 {selectedStudent.student_phone}</span>
+                  {selectedStudent.parent_phone && (
+                    <span style={{ color: '#6366f1', fontWeight: 700, marginLeft: '1rem' }}>👨‍👩‍👧‍👦 {selectedStudent.parent_phone}</span>
+                  )}
+                  {selectedStudent.duration !== undefined && selectedStudent.duration > 0 && (
+                    <span style={{ marginLeft: '1rem', color: 'var(--muted-foreground)', fontWeight: 700 }}>⏱️ {Math.floor(selectedStudent.duration / 60)}:{(selectedStudent.duration % 60).toString().padStart(2, '0')}</span>
+                  )}
                   <span className={styles.modalScore} style={{ color: getScoreColor((selectedStudent.score / selectedStudent.total_questions) * 100) }}>
                     الدرجة: {selectedStudent.score} / {selectedStudent.total_questions}
                   </span>
@@ -333,22 +388,66 @@ export function ResultsView({ submissions, questions, allAnswers, hwInfo }: Resu
                   </div>
                   <p className={styles.ansText}>{item.question.question_text}</p>
                   
-                  <div className={styles.ansOptions}>
-                    <div className={`${styles.ansOpt} ${item.answer?.is_correct === false && item.answer?.selected_option === 'a' ? styles.optWrong : ''} ${item.question.correct_answer === 'a' && item.answer?.is_correct === false ? styles.optCorrectInfo : ''} ${item.answer?.is_correct && item.answer?.selected_option === 'a' ? styles.optCorrect : ''}`}>
-                      <span className={styles.optLetter}>أ</span> {item.question.option_a}
-                    </div>
-                    <div className={`${styles.ansOpt} ${item.answer?.is_correct === false && item.answer?.selected_option === 'b' ? styles.optWrong : ''} ${item.question.correct_answer === 'b' && item.answer?.is_correct === false ? styles.optCorrectInfo : ''} ${item.answer?.is_correct && item.answer?.selected_option === 'b' ? styles.optCorrect : ''}`}>
-                      <span className={styles.optLetter}>ب</span> {item.question.option_b}
-                    </div>
-                    <div className={`${styles.ansOpt} ${item.answer?.is_correct === false && item.answer?.selected_option === 'c' ? styles.optWrong : ''} ${item.question.correct_answer === 'c' && item.answer?.is_correct === false ? styles.optCorrectInfo : ''} ${item.answer?.is_correct && item.answer?.selected_option === 'c' ? styles.optCorrect : ''}`}>
-                      <span className={styles.optLetter}>ج</span> {item.question.option_c}
-                    </div>
-                    <div className={`${styles.ansOpt} ${item.answer?.is_correct === false && item.answer?.selected_option === 'd' ? styles.optWrong : ''} ${item.question.correct_answer === 'd' && item.answer?.is_correct === false ? styles.optCorrectInfo : ''} ${item.answer?.is_correct && item.answer?.selected_option === 'd' ? styles.optCorrect : ''}`}>
-                      <span className={styles.optLetter}>د</span> {item.question.option_d}
-                    </div>
-                  </div>
+                  {item.question.question_type === 'essay' ? (
+                    <div style={{ marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                      <div style={{ padding: '1rem', backgroundColor: 'var(--background)', borderRadius: '0.5rem', border: '1px solid var(--border)' }}>
+                        <span style={{ fontWeight: 600, display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem' }}>إجابة الطالب:</span>
+                        {(() => {
+                          try {
+                            const parsed = JSON.parse(item.answer?.selected_option || '{}');
+                            return (
+                              <div>
+                                {parsed.text && <p style={{ whiteSpace: 'pre-wrap', marginBottom: parsed.imageUrl ? '1rem' : 0, color: 'var(--foreground)' }}>{parsed.text}</p>}
+                                {parsed.imageUrl && <img src={parsed.imageUrl} alt="صورة إجابة الطالب" style={{ maxWidth: '100%', borderRadius: '0.5rem', border: '1px solid var(--border)' }} />}
+                                {!parsed.text && !parsed.imageUrl && <span style={{ color: 'var(--muted-foreground)' }}>بدون إجابة</span>}
+                              </div>
+                            );
+                          } catch (e) {
+                            return <p style={{ color: 'var(--foreground)' }}>{item.answer?.selected_option || 'بدون إجابة'}</p>;
+                          }
+                        })()}
+                      </div>
 
-                  {!item.answer?.is_correct && (
+                      <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                        <Button 
+                          size="sm" 
+                          variant={item.answer?.is_correct === true ? 'primary' : 'outline'}
+                          onClick={() => handleGrade(selectedStudent.id, item.question.id, true)}
+                          disabled={isGrading}
+                        >
+                          {item.answer?.is_correct === true ? '✅ محسوب صحيح' : '✔️ رصد كـ صحيح'}
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          variant={item.answer?.is_correct === false ? 'danger' : 'outline'}
+                          onClick={() => handleGrade(selectedStudent.id, item.question.id, false)}
+                          disabled={isGrading}
+                        >
+                          {item.answer?.is_correct === false ? '❌ محسوب خطأ' : '✖️ رصد كـ خطأ'}
+                        </Button>
+                        {(item.answer?.is_correct === null || item.answer?.is_correct === undefined) && (
+                          <span style={{ fontSize: '0.85rem', color: '#f59e0b', fontWeight: 700 }}>⚠️ بانتظار تصحيحك</span>
+                        )}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className={styles.ansOptions}>
+                      <div className={`${styles.ansOpt} ${item.answer?.is_correct === false && item.answer?.selected_option === 'a' ? styles.optWrong : ''} ${item.question.correct_answer === 'a' && item.answer?.is_correct === false ? styles.optCorrectInfo : ''} ${item.answer?.is_correct && item.answer?.selected_option === 'a' ? styles.optCorrect : ''}`}>
+                        <span className={styles.optLetter}>أ</span> {item.question.option_a}
+                      </div>
+                      <div className={`${styles.ansOpt} ${item.answer?.is_correct === false && item.answer?.selected_option === 'b' ? styles.optWrong : ''} ${item.question.correct_answer === 'b' && item.answer?.is_correct === false ? styles.optCorrectInfo : ''} ${item.answer?.is_correct && item.answer?.selected_option === 'b' ? styles.optCorrect : ''}`}>
+                        <span className={styles.optLetter}>ب</span> {item.question.option_b}
+                      </div>
+                      <div className={`${styles.ansOpt} ${item.answer?.is_correct === false && item.answer?.selected_option === 'c' ? styles.optWrong : ''} ${item.question.correct_answer === 'c' && item.answer?.is_correct === false ? styles.optCorrectInfo : ''} ${item.answer?.is_correct && item.answer?.selected_option === 'c' ? styles.optCorrect : ''}`}>
+                        <span className={styles.optLetter}>ج</span> {item.question.option_c}
+                      </div>
+                      <div className={`${styles.ansOpt} ${item.answer?.is_correct === false && item.answer?.selected_option === 'd' ? styles.optWrong : ''} ${item.question.correct_answer === 'd' && item.answer?.is_correct === false ? styles.optCorrectInfo : ''} ${item.answer?.is_correct && item.answer?.selected_option === 'd' ? styles.optCorrect : ''}`}>
+                        <span className={styles.optLetter}>د</span> {item.question.option_d}
+                      </div>
+                    </div>
+                  )}
+
+                  {item.question.question_type !== 'essay' && !item.answer?.is_correct && (
                     <div className={styles.correctionArea}>
                       <span className={styles.correctLabel}>الإجابة الصحيحة:</span>
                       <span className={styles.correctVal}>{getOptionLabel(item.question, item.question.correct_answer)}</span>

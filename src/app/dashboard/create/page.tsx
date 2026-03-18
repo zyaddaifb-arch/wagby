@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui
 import { Input } from '../../../components/ui/Input';
 import styles from './create.module.css';
 import { playSound } from '../../../utils/audio';
-import { saveHomework, getHomeworkById } from './actions';
+import { saveHomework, getHomeworkById, getDefaultSettings } from './actions';
 import { ImageUploader } from './ImageUploader';
 import { PreviewModal } from '../../../components/PreviewModal';
 
@@ -18,7 +18,7 @@ interface Question {
   options: string[];
   correctOption: number;
   explanation: string;
-  type: 'multiple_choice' | 'true_false';
+  type: 'multiple_choice' | 'true_false' | 'essay';
   imageUrl: string | null;
 }
 
@@ -34,18 +34,36 @@ function CreateForm() {
   const [timeLimit, setTimeLimit] = useState<number | ''>('');
   const [maxAttempts, setMaxAttempts] = useState<number>(1);
   const [totalStudents, setTotalStudents] = useState<number | ''>('');
-  const [questions, setQuestions] = useState<Question[]>([
-    { id: '1', text: '', options: ['', '', '', ''], correctOption: -1, explanation: '', type: 'multiple_choice', imageUrl: null }
-  ]);
+  const [questions, setQuestions] = useState<Question[]>([]);
   const [isSaving, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(!!editId);
   const [error, setError] = useState<string | null>(null);
+  const [questionErrors, setQuestionErrors] = useState<Record<string, string>>({});
   const [submissionCount, setSubmissionCount] = useState<number>(0);
+  const [randomizeQuestions, setRandomizeQuestions] = useState(false);
+  const [randomizeAnswers, setRandomizeAnswers] = useState(false);
+  const [layout, setLayout] = useState<'wizard' | 'scroll'>('wizard');
   const [showPreview, setShowPreview] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   
   useEffect(() => {
     async function fetchHomework() {
-      if (!editId) return;
+      if (!editId) {
+        // Fetch default settings for new homework
+        try {
+          const settings = await getDefaultSettings();
+          if (settings) {
+            setRandomizeQuestions(settings.randomizeQuestions ?? false);
+            setRandomizeAnswers(settings.randomizeAnswers ?? false);
+            setLayout(settings.layout ?? 'wizard');
+            setMaxAttempts(settings.maxAttempts ?? 1);
+          }
+        } catch (err) {
+          console.error("Failed to fetch default settings:", err);
+        }
+        setIsLoading(false);
+        return;
+      }
       try {
         const hw = await getHomeworkById(editId);
         if (hw) {
@@ -56,6 +74,9 @@ function CreateForm() {
           setMaxAttempts(hw.max_attempts || 1);
           setTotalStudents(hw.total_students || '');
           setSubmissionCount(hw.submissionCount || 0);
+          setRandomizeQuestions(hw.randomize_questions || false);
+          setRandomizeAnswers(hw.randomize_answers || false);
+          setLayout(hw.layout || 'wizard');
           if (hw.questions && hw.questions.length > 0) {
               const mappedQuestions = (hw.questions as Record<string, unknown>[]).sort((a,b)=>Number(a.order_index) - Number(b.order_index)).map(q => {
                   const options = [String(q.option_a), String(q.option_b), String(q.option_c), String(q.option_d)];
@@ -66,7 +87,7 @@ function CreateForm() {
                       options,
                       correctOption: qMap[String(q.correct_answer)] ?? 0,
                       explanation: q.explanation ? String(q.explanation) : '',
-                      type: (q.question_type as 'multiple_choice' | 'true_false') || 'multiple_choice',
+                      type: (q.question_type as 'multiple_choice' | 'true_false' | 'essay') || 'multiple_choice',
                       imageUrl: q.image_url ? String(q.image_url) : null
                   };
               });
@@ -82,11 +103,16 @@ function CreateForm() {
     fetchHomework();
   }, [editId]);
 
-  const addQuestion = () => {
+  const addQuestion = (type: 'multiple_choice' | 'true_false' | 'essay' = 'multiple_choice') => {
     playSound('click');
+    let options = ['', '', '', ''];
+    if (type === 'true_false') {
+      options = ['صح', 'خطأ', '', ''];
+    }
+    
     setQuestions([
       ...questions,
-      { id: Date.now().toString(), text: '', options: ['', '', '', ''], correctOption: -1, explanation: '', type: 'multiple_choice', imageUrl: null }
+      { id: Date.now().toString(), text: '', options, correctOption: -1, explanation: '', type, imageUrl: null }
     ]);
   };
 
@@ -121,7 +147,7 @@ function CreateForm() {
     setQuestions(questions.map(q => q.id === id ? { ...q, explanation } : q));
   };
 
-  const updateQuestionType = (id: string, type: 'multiple_choice' | 'true_false') => {
+  const updateQuestionType = (id: string, type: 'multiple_choice' | 'true_false' | 'essay') => {
     playSound('click');
     setQuestions(questions.map(q => {
       if (q.id === id) {
@@ -138,6 +164,50 @@ function CreateForm() {
     setQuestions(questions.map(q => q.id === id ? { ...q, imageUrl } : q));
   };
 
+  const validateQuestionsData = (shouldScroll = true) => {
+    const newQuestionErrors: Record<string, string> = {};
+    let firstInvalidId: string | null = null;
+
+    for (let i = 0; i < questions.length; i++) {
+        const q = questions[i];
+        let qError = '';
+
+        if (!q.text.trim()) {
+            qError = 'يرجى إدخال نص السؤال';
+        } else if (q.type !== 'essay' && q.correctOption === -1) {
+            qError = 'يرجى اختيار الإجابة الصحيحة';
+        } else if (q.type !== 'essay') {
+            const filledOptions = q.options.filter(opt => opt.trim() !== '');
+            if (q.type === 'multiple_choice' && filledOptions.length < 2) {
+                qError = 'يرجى إدخال خيارين على الأقل';
+            } else if (!q.options[q.correctOption].trim()) {
+                qError = 'الإجابة المختارة فارغة';
+            }
+        }
+
+        if (qError) {
+            newQuestionErrors[q.id] = qError;
+            if (!firstInvalidId) firstInvalidId = q.id;
+        }
+    }
+
+    setQuestionErrors(newQuestionErrors);
+
+    if (Object.keys(newQuestionErrors).length > 0) {
+        setError('يرجى تصحيح الأخطاء في الأسئلة أدناه');
+        if (firstInvalidId && shouldScroll) {
+            setTimeout(() => {
+                const element = document.getElementById(`question-card-${firstInvalidId}`);
+                if (element) {
+                    element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }, 100);
+        }
+        return false;
+    }
+    return true;
+  };
+
   const nextStep = () => {
     if (currentStep === 1) {
       if (!title.trim()) {
@@ -146,19 +216,7 @@ function CreateForm() {
       }
     }
     if (currentStep === 2) {
-       // basic validation for questions: skip empty trailing questions/options
-      for (let i = 0; i < questions.length; i++) {
-          const q = questions[i];
-          if (!q.text.trim()) return setError(`السؤال ${i + 1} يفتقر إلى النص`);
-          if (q.correctOption === -1) return setError(`السؤال ${i + 1}: يرجى اختيار الإجابة الصحيحة`);
-          
-          // Verify at least one option is filled
-          const filledOptions = q.options.filter(opt => opt.trim() !== '');
-          if (q.type === 'multiple_choice' && filledOptions.length < 2) return setError(`السؤال ${i + 1}: يرجى إدخال خيارين على الأقل`);
-          
-          // Ensure the selected correct option is not an empty string
-          if (!q.options[q.correctOption].trim()) return setError(`السؤال ${i + 1}: الإجابة المختارة فارغة`);
-      }
+      if (!validateQuestionsData()) return;
     }
     setError(null);
     setCurrentStep(prev => prev + 1);
@@ -174,6 +232,26 @@ function CreateForm() {
 
   const handleSave = async (isPublished: boolean) => {
     setError(null);
+    
+    // 1. Validate Title
+    if (!title.trim()) {
+      setError('يرجى إدخال عنوان الواجب');
+      if (currentStep !== 1) {
+        setCurrentStep(1);
+      }
+      return;
+    }
+
+    // 2. Validate Questions
+    if (!validateQuestionsData(currentStep === 2)) {
+      if (currentStep !== 2) {
+        setCurrentStep(2);
+        // If we switched steps, we need to try scrolling AFTER elements mount
+        setTimeout(() => validateQuestionsData(true), 200);
+      }
+      return;
+    }
+
     setIsSaving(true);
     playSound('pop');
     
@@ -186,7 +264,13 @@ function CreateForm() {
         maxAttempts,
         totalStudents: totalStudents === '' ? 0 : totalStudents,
         isPublished,
-        questions
+        randomizeQuestions,
+        randomizeAnswers,
+        layout,
+        questions: questions.map(q => ({
+          ...q,
+          questionType: q.type
+        }))
     });
 
     if (result.error) {
@@ -279,12 +363,12 @@ function CreateForm() {
           onChange={(e) => setTimeLimit(e.target.value === '' ? '' : parseInt(e.target.value))}
         />
         <Input 
-          label="أقصى عدد من المحاولات" 
+          label="أقصى عدد من المحاولات (0 = غير محدود)" 
           type="number"
           placeholder="مثال: 1" 
           value={maxAttempts}
-          onChange={(e) => setMaxAttempts(parseInt(e.target.value) || 1)}
-          min={1}
+          onChange={(e) => setMaxAttempts(parseInt(e.target.value) || 0)}
+          min={0}
         />
         <Input 
           label="عدد طلاب الفصل (المتوقع)" 
@@ -295,6 +379,229 @@ function CreateForm() {
           min={0}
         />
       </div>
+
+      {/* NEW: Improved Display Settings Box */}
+      <div style={{ 
+        marginTop: '2rem', 
+        backgroundColor: 'rgba(255,255,255,0.02)', 
+        borderRadius: '1.25rem',
+        border: '1px solid var(--border)',
+        overflow: 'hidden',
+        boxShadow: '0 4px 20px rgba(0,0,0,0.1)'
+      }}>
+        <div 
+          onClick={() => setIsSettingsOpen(!isSettingsOpen)}
+          style={{ 
+            padding: '1.25rem 1.75rem', 
+            backgroundColor: 'rgba(59, 130, 246, 0.08)',
+            borderBottom: isSettingsOpen ? '1px solid var(--border)' : 'none',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            cursor: 'pointer',
+            transition: 'all 0.3s ease'
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{ padding: '8px', backgroundColor: 'var(--primary)', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+            </div>
+            <h3 style={{ fontSize: '1.1rem', fontWeight: 900, color: 'var(--foreground)', margin: 0 }}>إعدادات عرض الواجب وعشوائية الأسئلة</h3>
+          </div>
+          <div style={{ 
+            transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)', 
+            transform: isSettingsOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+            color: 'var(--muted-foreground)'
+          }}>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </div>
+        </div>
+
+        {isSettingsOpen && (
+          <div style={{ padding: '2rem', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem' }}>
+            {/* Randomize Questions Toggle */}
+            <div 
+              style={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'space-between',
+                padding: '1.5rem',
+                borderRadius: '1.25rem',
+                backgroundColor: randomizeQuestions ? 'rgba(59, 130, 246, 0.08)' : 'rgba(255,255,255,0.02)',
+                border: '2px solid',
+                borderColor: randomizeQuestions ? 'var(--primary)' : 'var(--border)',
+                cursor: 'pointer',
+                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                boxShadow: randomizeQuestions ? '0 10px 25px rgba(59, 130, 246, 0.1)' : 'none',
+              }} 
+              onClick={() => setRandomizeQuestions(!randomizeQuestions)}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                <div style={{ 
+                  padding: '10px', 
+                  borderRadius: '12px', 
+                  backgroundColor: randomizeQuestions ? 'var(--primary)' : 'rgba(0,0,0,0.1)',
+                  color: randomizeQuestions ? 'white' : 'var(--muted-foreground)',
+                  transition: 'all 0.3s'
+                }}>
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                  <span style={{ fontWeight: 900, fontSize: '1.1rem', color: randomizeQuestions ? 'var(--primary)' : 'inherit' }}>عشوائية الأسئلة</span>
+                  <span style={{ fontSize: '0.85rem', color: 'var(--muted-foreground)' }}>تغيير الترتيب لكل طالب</span>
+                </div>
+              </div>
+              <div style={{ 
+                width: '52px', 
+                height: '28px', 
+                backgroundColor: randomizeQuestions ? 'var(--primary)' : 'rgba(255,255,255,0.1)', 
+                borderRadius: '20px', 
+                position: 'relative',
+                transition: 'background-color 0.3s'
+              }}>
+                <div style={{ 
+                  width: '22px', 
+                  height: '22px', 
+                  backgroundColor: 'white', 
+                  borderRadius: '50%', 
+                  position: 'absolute', 
+                  top: '3px', 
+                  right: randomizeQuestions ? '3px' : '27px',
+                  transition: 'right 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                  boxShadow: '0 2px 5px rgba(0,0,0,0.3)'
+                }} />
+              </div>
+            </div>
+
+            {/* Randomize Answers Toggle */}
+            <div 
+              style={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'space-between',
+                padding: '1.5rem',
+                borderRadius: '1.25rem',
+                backgroundColor: randomizeAnswers ? 'rgba(59, 130, 246, 0.08)' : 'rgba(255,255,255,0.02)',
+                border: '2px solid',
+                borderColor: randomizeAnswers ? 'var(--primary)' : 'var(--border)',
+                cursor: 'pointer',
+                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                boxShadow: randomizeAnswers ? '0 10px 25px rgba(59, 130, 246, 0.1)' : 'none',
+              }} 
+              onClick={() => setRandomizeAnswers(!randomizeAnswers)}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                <div style={{ 
+                  padding: '10px', 
+                  borderRadius: '12px', 
+                  backgroundColor: randomizeAnswers ? 'var(--primary)' : 'rgba(0,0,0,0.1)',
+                  color: randomizeAnswers ? 'white' : 'var(--muted-foreground)',
+                  transition: 'all 0.3s'
+                }}>
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/><line x1="4" y1="4" x2="9" y2="9"/></svg>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                  <span style={{ fontWeight: 900, fontSize: '1.1rem', color: randomizeAnswers ? 'var(--primary)' : 'inherit' }}>عشوائية الإجابات</span>
+                  <span style={{ fontSize: '0.85rem', color: 'var(--muted-foreground)' }}>تغيير ترتيب (أ، ب، ج، د)</span>
+                </div>
+              </div>
+              <div style={{ 
+                width: '52px', 
+                height: '28px', 
+                backgroundColor: randomizeAnswers ? 'var(--primary)' : 'rgba(255,255,255,0.1)', 
+                borderRadius: '20px', 
+                position: 'relative',
+                transition: 'background-color 0.3s'
+              }}>
+                <div style={{ 
+                  width: '22px', 
+                  height: '22px', 
+                  backgroundColor: 'white', 
+                  borderRadius: '50%', 
+                  position: 'absolute', 
+                  top: '3px', 
+                  right: randomizeAnswers ? '3px' : '27px',
+                  transition: 'right 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                  boxShadow: '0 2px 5px rgba(0,0,0,0.3)'
+                }} />
+              </div>
+            </div>
+          </div>
+
+          <div style={{ 
+            display: 'flex', 
+            flexDirection: 'column', 
+            gap: '20px',
+            backgroundColor: 'rgba(255,255,255,0.015)',
+            padding: '2rem',
+            borderRadius: '1.5rem',
+            border: '1px solid var(--border)'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+               <div style={{ padding: '6px', borderRadius: '8px', backgroundColor: 'rgba(59, 130, 246, 0.1)', color: 'var(--primary)' }}>
+                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+               </div>
+               <label style={{ fontSize: '1.1rem', fontWeight: 900 }}>طريقة عرض الأسئلة للطالب</label>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '1.5rem' }}>
+               <button 
+                  type="button"
+                  onClick={() => setLayout('wizard')}
+                  style={{
+                    padding: '1.5rem',
+                    borderRadius: '1.25rem',
+                    border: '3px solid',
+                    borderColor: layout === 'wizard' ? 'var(--primary)' : 'var(--border)',
+                    backgroundColor: layout === 'wizard' ? 'rgba(59, 130, 246, 0.15)' : 'rgba(255,255,255,0.02)',
+                    color: layout === 'wizard' ? 'var(--primary)' : 'var(--muted-foreground)',
+                    fontWeight: 900,
+                    fontSize: '1.1rem',
+                    cursor: 'pointer',
+                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: '8px',
+                    boxShadow: layout === 'wizard' ? '0 15px 35px rgba(59, 130, 246, 0.2)' : 'none',
+                    transform: layout === 'wizard' ? 'translateY(-4px)' : 'none'
+                  }}
+               >
+                 <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: '4px' }}><polyline points="9 18 15 12 9 6"/></svg>
+                 <span>سؤال تلو الآخر</span>
+                 <small style={{ fontSize: '0.8rem', opacity: 0.7, fontWeight: 700 }}>نظام المعالج (Wizard)</small>
+               </button>
+               <button 
+                  type="button"
+                  onClick={() => setLayout('scroll')}
+                  style={{
+                    padding: '1.5rem',
+                    borderRadius: '1.25rem',
+                    border: '3px solid',
+                    borderColor: layout === 'scroll' ? 'var(--primary)' : 'var(--border)',
+                    backgroundColor: layout === 'scroll' ? 'rgba(59, 130, 246, 0.15)' : 'rgba(255,255,255,0.02)',
+                    color: layout === 'scroll' ? 'var(--primary)' : 'var(--muted-foreground)',
+                    fontWeight: 900,
+                    fontSize: '1.1rem',
+                    cursor: 'pointer',
+                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: '8px',
+                    boxShadow: layout === 'scroll' ? '0 15px 35px rgba(59, 130, 246, 0.2)' : 'none',
+                    transform: layout === 'scroll' ? 'translateY(-4px)' : 'none'
+                  }}
+               >
+                 <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: '4px' }}><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+                 <span>جميع الأسئلة</span>
+                 <small style={{ fontSize: '0.8rem', opacity: 0.7, fontWeight: 700 }}>صفحة واحدة (Scroll)</small>
+               </button>
+            </div>
+          </div>
+        </div>
+        )}
+      </div>
     </div>
   );
 
@@ -302,8 +609,8 @@ function CreateForm() {
     <div className={styles.formContent}>
       <div className={styles.questionsList}>
         {questions.map((q, qIndex) => (
-          <Card key={q.id} className={styles.questionCard}>
-            <CardHeader className={styles.qHeader}>
+          <Card key={q.id} id={`question-card-${q.id}`} className={`${styles.questionCard} ${questionErrors[q.id] ? styles.cardWithError : ''}`}>
+            <CardHeader className={styles.qHeader} id={`question-header-${q.id}`}>
               <CardTitle className={styles.qTitle}>السؤال {qIndex + 1}</CardTitle>
               {questions.length > 1 && (
                 <button 
@@ -316,6 +623,12 @@ function CreateForm() {
               )}
             </CardHeader>
             <CardContent className={styles.qContent}>
+              {questionErrors[q.id] && (
+                <div className={styles.questionErrorAlert}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                  <span>{questionErrors[q.id]}</span>
+                </div>
+              )}
               <div style={{ marginBottom: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                 <label style={{ fontSize: '0.875rem', fontWeight: '800', color: 'var(--foreground)', opacity: 0.8 }}>نوع السؤال</label>
                 <div style={{ display: 'flex', gap: '1rem' }}>
@@ -341,6 +654,17 @@ function CreateForm() {
                     >
                         صح أو خطأ
                     </button>
+                    <button 
+                        type="button" 
+                        onClick={() => updateQuestionType(q.id, 'essay')}
+                        style={{
+                            flex: 1, padding: '0.75rem', borderRadius: '0.5rem', border: `2px solid ${q.type === 'essay' ? 'var(--primary)' : 'var(--border)'}`,
+                            backgroundColor: q.type === 'essay' ? 'var(--primary-light, rgba(59, 130, 246, 0.1))' : 'transparent',
+                            color: q.type === 'essay' ? 'var(--primary)' : 'var(--muted-foreground)', fontWeight: 700, cursor: 'pointer', transition: 'all 0.2s'
+                        }}
+                    >
+                        مقالي / صورة
+                    </button>
                 </div>
               </div>
 
@@ -362,36 +686,44 @@ function CreateForm() {
                 label="نص السؤال"
               />
               
-              <div className={styles.optionsList}>
-                {q.options.map((optText, oIndex) => {
-                  if (q.type === 'true_false' && oIndex > 1) return null;
-                  return (
-                    <div key={oIndex} className={styles.optionRow}>
-                      <input 
-                        type="radio" 
-                        name={`correct-${q.id}`} 
-                        className={styles.radioInput}
-                        checked={q.correctOption === oIndex}
-                        onChange={() => setCorrectOption(q.id, oIndex)}
-                        title="اختر كإجابة صحيحة"
-                      />
-                      <Input 
-                        placeholder={q.type === 'true_false' ? (oIndex === 0 ? 'صح' : 'خطأ') : `الخيار ${oIndex + 1}`} 
-                        className={styles.optionInput} 
-                        value={optText}
-                        onChange={(e) => updateOptionText(q.id, oIndex, e.target.value)}
-                        required
-                        disabled={q.type === 'true_false'}
-                      />
-                    </div>
-                  );
-                })}
-              </div>
+              {q.type === 'essay' ? (
+                <div style={{ padding: '1.5rem', border: '2px dashed var(--border)', borderRadius: '1rem', textAlign: 'center', color: 'var(--muted-foreground)' }}>
+                  سيتم عرض مساحة نصية للطالب لكتابة الإجابة المقالية وإرفاق صورة (اختياري).
+                </div>
+              ) : (
+                <div className={styles.optionsList}>
+                  {q.options.map((optText, oIndex) => {
+                    if (q.type === 'true_false' && oIndex > 1) return null;
+                    return (
+                      <div key={oIndex} className={styles.optionRow}>
+                        <input 
+                          type="radio" 
+                          name={`correct-${q.id}`} 
+                          className={styles.radioInput}
+                          checked={q.correctOption === oIndex}
+                          onChange={() => setCorrectOption(q.id, oIndex)}
+                          title="اختر كإجابة صحيحة"
+                        />
+                        <Input 
+                          placeholder={q.type === 'true_false' ? (oIndex === 0 ? 'صح' : 'خطأ') : `الخيار ${oIndex + 1}`} 
+                          className={styles.optionInput} 
+                          value={optText}
+                          onChange={(e) => updateOptionText(q.id, oIndex, e.target.value)}
+                          required
+                          disabled={q.type === 'true_false'}
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
 
               <div style={{ marginTop: '1.5rem', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                <label style={{ fontSize: '0.875rem', fontWeight: '600', color: 'var(--muted-foreground)' }}>تفسير الإجابة الصحيحة / ملاحظات إضافية (اختياري)</label>
+                <label style={{ fontSize: '0.875rem', fontWeight: '600', color: 'var(--muted-foreground)' }}>
+                  {q.type === 'essay' ? 'ملاحظات تصحيح المعلم (اختياري)' : 'تفسير الإجابة الصحيحة / ملاحظات إضافية (اختياري)'}
+                </label>
                 <textarea 
-                  placeholder="سيظهر هذا التفسير للطالب عند الإجابة بشكل خاطئ..." 
+                  placeholder={q.type === 'essay' ? 'أمثلة للإجابة المقبولة أو معايير التقييم...' : 'سيظهر هذا التفسير للطالب عند الإجابة بشكل خاطئ...'} 
                   value={q.explanation}
                   onChange={(e) => updateExplanation(q.id, e.target.value)}
                   style={{ 
@@ -411,16 +743,38 @@ function CreateForm() {
         ))}
       </div>
 
-      <Button 
-        variant="outline" 
-        className={styles.addQuestionBtn} 
-        onClick={addQuestion}
-        onMouseEnter={() => playSound('pop')}
-        fullWidth
-        type="button"
-      >
-        + إضافة سؤال
-      </Button>
+      <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginTop: '1.5rem' }}>
+        <Button 
+          variant="outline" 
+          className={styles.addQuestionBtn} 
+          onClick={() => addQuestion('multiple_choice')}
+          onMouseEnter={() => playSound('pop')}
+          style={{ flex: 1, minWidth: '200px' }}
+          type="button"
+        >
+          + إضافة سؤال اختيار من متعدد
+        </Button>
+        <Button 
+          variant="outline" 
+          className={styles.addQuestionBtn} 
+          onClick={() => addQuestion('true_false')}
+          onMouseEnter={() => playSound('pop')}
+          style={{ flex: 1, minWidth: '200px' }}
+          type="button"
+        >
+          + إضافة سؤال صح أو خطأ
+        </Button>
+        <Button 
+          variant="outline" 
+          className={styles.addQuestionBtn} 
+          onClick={() => addQuestion('essay')}
+          onMouseEnter={() => playSound('pop')}
+          style={{ flex: 1, minWidth: '200px' }}
+          type="button"
+        >
+          + إضافة سؤال مقالي
+        </Button>
+      </div>
     </div>
   );
 
@@ -512,25 +866,27 @@ function CreateForm() {
               </Link>
             )}
 
-            {currentStep < 3 ? (
-              <div style={{ display: 'flex', gap: '1rem' }}>
-                <Button id="btn-preview" variant="outline" onClick={() => setShowPreview(true)}>🔍 معاينة</Button>
-                <Button id="btn-next" variant="primary" onClick={nextStep}>التالي</Button>
-              </div>
-            ) : (
-              <div style={{ display: 'flex', gap: '1rem' }}>
-                <Button id="btn-save-draft" variant="outline" onClick={() => handleSave(false)} disabled={isSaving}>حفظ كمسودة</Button>
-                <Button 
-                  id="btn-publish"
-                  variant="primary" 
-                  className={styles.publishBtn} 
-                  onClick={() => handleSave(true)}
-                  disabled={isSaving}
-                >
-                  {isSaving ? 'جاري النشر...' : 'نشر الواجب'}
-                </Button>
-              </div>
-            )}
+            <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+              {currentStep < 3 ? (
+                <>
+                  <Button id="btn-next" variant="primary" onClick={nextStep}>التالي</Button>
+                </>
+              ) : (
+                <>
+                  <Button id="btn-preview" variant="outline" onClick={() => setShowPreview(true)}>🔍 معاينة</Button>
+                  <Button id="btn-save-draft" data-testid="save-draft-btn" variant="outline" onClick={() => handleSave(false)} disabled={isSaving}>حفظ كمسودة</Button>
+                  <Button 
+                    id="btn-publish"
+                    variant="primary" 
+                    className={styles.publishBtn} 
+                    onClick={() => handleSave(true)}
+                    disabled={isSaving}
+                  >
+                    {isSaving ? 'جاري النشر...' : 'نشر الواجب'}
+                  </Button>
+                </>
+              )}
+            </div>
           </div>
         </CardContent>
       </Card>

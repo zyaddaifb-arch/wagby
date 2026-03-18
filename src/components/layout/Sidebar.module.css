@@ -169,6 +169,27 @@
 .logoutWrapper {
   margin-top: 1rem;
   padding: 0 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.themeToggleWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Ensure the theme toggle icon is always white/light in the dark sidebar */
+.themeToggleWrapper :global(button) {
+  color: white !important;
+  border-color: rgba(255, 255, 255, 0.2) !important;
+  background-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+.themeToggleWrapper :global(button):hover {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  border-color: rgba(255, 255, 255, 0.4) !important;
 }
 
 /* ---- Mobile Drawer ---- */
@@ -188,7 +209,7 @@
     right: 0;
     height: 100vh;
     width: 17rem;
-    z-index: 200;
+    z-index: 9999;
     transform: translateX(100%);
     transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
     box-shadow: -20px 0 60px rgba(0, 0, 0, 0.6);
@@ -205,7 +226,7 @@
     position: fixed;
     inset: 0;
     background: rgba(2, 6, 23, 0.75);
-    z-index: 199;
+    z-index: 9998;
     backdrop-filter: blur(4px);
     -webkit-backdrop-filter: blur(4px);
     animation: fadeIn 0.25s ease;

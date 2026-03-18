@@ -4,12 +4,6 @@ import { createClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
 
 export type UserSettings = {
-  appearance: {
-    theme: 'light' | 'dark'
-    themeColor: string
-    fontSize: string
-    uiDecorations: boolean
-  }
   homework: {
     showResult: 'immediate' | 'hidden'
     showCorrectAnswers: boolean
@@ -20,24 +14,9 @@ export type UserSettings = {
     randomizeAnswers: boolean
     layout: 'wizard' | 'scroll'
   }
-  notifications: {
-    onSubmission: boolean
-    dailyReport: boolean
-    weeklyReport: boolean
-    email: boolean
-    whatsapp: boolean
-  }
   privacy: {
-    linkOnly: boolean
-    preventDuplicates: boolean
     requirePhone: boolean
     optionalParentPhone: boolean
-  }
-  branding: {
-    publicName: string
-    welcomeMessage: string
-    finalMessage: string
-    customColors: boolean
   }
 }
 
@@ -65,6 +44,25 @@ export async function updateProfile(data: {
   if (error) return { error: error.message }
 
   revalidatePath('/dashboard/settings')
+  return { success: true }
+}
+
+export async function updatePassword(password: string) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) return { error: 'Unauthorized' }
+
+  if (password.length < 6) {
+    return { error: 'يجب أن لا تقل كلمة المرور عن 6 أحرف' }
+  }
+
+  const { error } = await supabase.auth.updateUser({
+    password: password
+  })
+
+  if (error) return { error: error.message }
+
   return { success: true }
 }
 

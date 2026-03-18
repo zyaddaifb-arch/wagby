@@ -13,7 +13,11 @@ import {
   Sparkles, 
   ArrowRight,
   ShieldCheck,
-  MousePointer2
+  MousePointer2,
+  LayoutDashboard,
+  ClipboardList,
+  Settings,
+  Users
 } from 'lucide-react';
 
 export default function LandingPage() {
@@ -43,7 +47,7 @@ export default function LandingPage() {
             </h1>
             
             <p className={`${styles.subtitle} animate-fade-in-up`} style={{ animationDelay: '0.2s' }}>
-              منصة ذاكرلي هي دليلك الأذكى لإنشاء وتقييم الواجبات المدرسية. وفر ساعات من وقتك الثمين، وامنح طلابك تجربة تفاعلية وممتعة تغنيهم عن الأوراق التقليدية.
+              منصة واجبي هي دليلك الأذكى لإنشاء وتقييم الواجبات المدرسية. وفر ساعات من وقتك الثمين، وامنح طلابك تجربة تفاعلية وممتعة تغنيهم عن الأوراق التقليدية.
             </p>
             
             <div className={`${styles.ctaWrapper} animate-fade-in-up`} style={{ animationDelay: '0.3s' }}>
@@ -57,9 +61,19 @@ export default function LandingPage() {
                   ابدأ مجاناً الآن <ArrowRight size={18} style={{ marginRight: '8px' }} />
                 </Button>
               </Link>
-              <Button size="lg" variant="secondary" className={styles.secondaryCta}>استكشف المميزات</Button>
+              <Button 
+                size="lg" 
+                variant="secondary" 
+                className={styles.secondaryCta}
+                onClick={() => {
+                  playSound('click');
+                  document.getElementById('features-section')?.scrollIntoView({ behavior: 'smooth' });
+                }}
+              >
+                استكشف المميزات
+              </Button>
             </div>
-            
+
             <div className={`${styles.heroPreview} animate-fade-in-up`} style={{ animationDelay: '0.4s' }}>
                <div className={styles.previewMockup}>
                  <div className={styles.mockupHeader}>
@@ -68,44 +82,73 @@ export default function LandingPage() {
                      <span className={styles.dotYellow}></span>
                      <span className={styles.dotGreen}></span>
                    </div>
-                   <div className={styles.mockupTitle}>dashboard.zakerly.com - مراجعة القوانين</div>
+                   <div className={styles.mockupTitle}>dashboard.wajby.com - مراجعة القوانين</div>
                    <div className={styles.mockupSearch}>
                       <div className={styles.mockupSearchInner}></div>
                    </div>
                  </div>
                  <div className={styles.mockupBody}>
                     <div className={styles.mockupSidebar}>
-                       <div className={styles.mockupSidebarItem}></div>
-                       <div className={styles.mockupSidebarItemActive}></div>
-                       <div className={styles.mockupSidebarItem}></div>
-                       <div className={styles.mockupSidebarItem}></div>
-                    </div>
-                    <div className={styles.mockupMain}>
-                      <div className={styles.mockupTopRow}>
-                        <div className={styles.mockupCardGlow}>
-                           <div className={styles.mockupTextHeading}>مراجعة قوانين الحركة</div>
-                           <div className={styles.mockupTextSub}>بواسطة: أ. محمد علي</div>
+                        <div className={styles.mockupSidebarItemActive}>
+                          <LayoutDashboard size={14} />
+                          <span>لوحة التحكم</span>
                         </div>
-                        <div className={styles.mockupStatCard}>
-                           <BarChart3 size={24} color="var(--primary)" />
-                           <div className={styles.mockupStatValue}>85%</div>
+                        <div className={styles.mockupSidebarItem}>
+                          <ClipboardList size={14} />
+                          <span>الواجبات</span>
                         </div>
-                      </div>
-                      <div className={styles.mockupCardRow}>
-                        <div className={styles.mockupSmallCard}>
-                           <div className={styles.mockupChart}>
-                              <div className={styles.bar1}></div>
-                              <div className={styles.bar2}></div>
-                              <div className={styles.bar3}></div>
-                           </div>
+                        <div className={styles.mockupSidebarItem}>
+                          <BarChart3 size={14} />
+                          <span>النتائج</span>
                         </div>
-                        <div className={styles.mockupSmallCard}>
-                            <div className={styles.mockupLine}></div>
-                            <div className={styles.mockupLineShort}></div>
-                            <div className={styles.mockupLine}></div>
+                        <div className={styles.mockupSidebarItem}>
+                          <Settings size={14} />
+                          <span>الإعدادات</span>
                         </div>
-                      </div>
-                    </div>
+                     </div>
+                     <div className={styles.mockupMain}>
+                       <div className={styles.mockupTopRow}>
+                         <div className={styles.mockupCardGlow}>
+                            <div className={styles.mockupTextHeading}>مراجعة قوانين الحركة</div>
+                            <div className={styles.mockupTextSub}>بواسطة: أ. محمد علي • تم النشر</div>
+                         </div>
+                         <div className={styles.mockupStatCard}>
+                            <Users size={20} color="var(--primary)" />
+                            <div className={styles.mockupStatValue}>٤٢</div>
+                            <div className={styles.mockupStatLabel}>طالب</div>
+                         </div>
+                       </div>
+                       <div className={styles.mockupCardRow}>
+                         <div className={styles.mockupSmallCard}>
+                            <div className={styles.mockupTextHeading}>أداء الفصول</div>
+                            <div className={styles.mockupChart}>
+                               <div className={styles.bar1}></div>
+                               <div className={styles.bar2}></div>
+                               <div className={styles.bar3}></div>
+                            </div>
+                         </div>
+                         <div className={styles.mockupSmallCard}>
+                             <div className={styles.mockupTextHeading}>نتائج حديثة</div>
+                             <div className={styles.mockupMiniList}>
+                               <div className={styles.mockupListItem}>
+                                 <div className={styles.mockupDot} style={{ background: 'var(--success)' }}></div>
+                                 <span>أحمد محمد</span>
+                                 <span className={styles.mockupListValue}>٩٥%</span>
+                               </div>
+                               <div className={styles.mockupListItem}>
+                                 <div className={styles.mockupDot} style={{ background: 'var(--primary)' }}></div>
+                                 <span>سارة خالد</span>
+                                 <span className={styles.mockupListValue}>٨٨%</span>
+                               </div>
+                               <div className={styles.mockupListItem}>
+                                 <div className={styles.mockupDot} style={{ background: 'var(--warning)' }}></div>
+                                 <span>يوسف علي</span>
+                                 <span className={styles.mockupListValue}>٧٢%</span>
+                               </div>
+                             </div>
+                         </div>
+                       </div>
+                     </div>
                  </div>
                  <div className={styles.mockupCursor}>
                     <MousePointer2 size={24} fill="var(--primary)" color="white" />
@@ -115,9 +158,9 @@ export default function LandingPage() {
           </div>
         </section>
 
-        <section className={`container ${styles.featuresSection}`}>
+        <section id="features-section" className={`container ${styles.featuresSection}`}>
             <div className={`${styles.sectionHeader} animate-fade-in-up`}>
-               <h2 className={styles.sectionTitle}>لماذا ذاكرلي هي اختيارك الأفضل؟</h2>
+               <h2 className={styles.sectionTitle}>لماذا واجبي هي اختيارك الأفضل؟</h2>
                <p className={styles.sectionSubtitle}>صُممت بعناية لتكون أسهل وأسرع وسيلة لإدارة واجباتك اليومية.</p>
             </div>
             

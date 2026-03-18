@@ -1,7 +1,7 @@
 .container {
   display: flex;
   flex-direction: column;
-  gap: 2.5rem;
+  gap: var(--container-px);
   max-width: 900px;
   margin: 0 auto;
   padding-bottom: 4rem;
@@ -15,7 +15,7 @@
 }
 
 .pageTitle {
-  font-size: 2.75rem;
+  font-size: clamp(2rem, 6vw, 2.75rem);
   font-weight: 900;
   color: var(--foreground);
   letter-spacing: -0.04em;
@@ -176,9 +176,10 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 4rem;
+  gap: clamp(1rem, 10vw, 4rem);
   margin-bottom: 3rem;
   position: relative;
+  padding: 0 var(--container-px);
 }
 
 .stepper::before {
@@ -301,11 +302,8 @@
   }
 
   .pageTitle {
-    font-size: 1.9rem;
-  }
-
-  .pageSubtitle {
-    font-size: 0.95rem;
+    text-align: right;
+    padding: 0 0.5rem;
   }
 
   .formContent {
@@ -331,12 +329,14 @@
   .wizardActions {
     flex-direction: column-reverse;
     padding: 0 1.5rem 1.5rem !important;
-    gap: 0.75rem;
+    gap: 1rem;
   }
 
   .wizardActions > * {
     width: 100%;
-    justify-content: center;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
   }
 
   /* Option rows: ensure tap targets are big enough */
@@ -345,14 +345,49 @@
   }
 
   .radioInput {
-    width: 1.75rem;
-    height: 1.75rem;
+    width: 2rem;
+    height: 2rem;
+    flex-shrink: 0;
   }
 
   /* Limits grid: single column on mobile */
   .limitsGrid {
     grid-template-columns: 1fr;
-    gap: 1rem;
+    gap: 1.25rem;
+  }
+  
+  .stepper {
+    margin-bottom: 1.5rem;
+  }
+  
+  .stepLabel {
+    font-size: 0.8rem;
   }
 }
 
+.cardWithError {
+  border-color: var(--danger) !important;
+  box-shadow: 0 0 15px rgba(239, 68, 68, 0.15);
+}
+
+.questionErrorAlert {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem;
+  background-color: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  border-radius: 0.75rem;
+  color: var(--danger);
+  font-weight: 700;
+  font-size: 0.9rem;
+  margin-bottom: 1.5rem;
+  animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+}
+
+@keyframes shake {
+  10%, 90% { transform: translate3d(-1px, 0, 0); }
+  20%, 80% { transform: translate3d(2px, 0, 0); }
+  30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+  40%, 60% { transform: translate3d(4px, 0, 0); }
+}

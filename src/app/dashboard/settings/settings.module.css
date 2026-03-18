@@ -97,6 +97,10 @@
   border-color: rgba(255, 255, 255, 0.1);
 }
 
+.sectionContent {
+  padding: 2rem !important;
+}
+
 .sectionTitle {
   font-size: 1.5rem;
   font-weight: 800;
@@ -165,8 +169,11 @@
   }
 }
 
-@media (max-width: 640px) {
+@media (max-width: 768px) {
   .grid2cols {
     grid-template-columns: 1fr;
+  }
+  .sectionContent {
+    padding: 1.25rem 1rem !important;
   }
 }

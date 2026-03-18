@@ -37,11 +37,13 @@ export function ImageUploader({ value, onChange }: ImageUploaderProps) {
 
       if (uploadError) throw uploadError;
 
-      const { data: { publicUrl } } = supabase.storage
+      const { data, error: signError } = await supabase.storage
         .from('question-images')
-        .getPublicUrl(fileName);
+        .createSignedUrl(fileName, 315360000); // 10 years expiration for simplicity
 
-      onChange(publicUrl);
+      if (signError) throw signError;
+
+      onChange(data?.signedUrl || null);
     } catch (err: any) {
       setError('فشل رفع الصورة. حاول مرة أخرى.');
       console.error(err);

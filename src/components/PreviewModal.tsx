@@ -11,7 +11,7 @@ interface Question {
   options: string[];
   correctOption: number;
   explanation: string;
-  type: 'multiple_choice' | 'true_false';
+  type: 'multiple_choice' | 'true_false' | 'essay';
   imageUrl: string | null;
 }
 
@@ -33,7 +33,7 @@ export function PreviewModal({ isOpen, onClose, title, questions }: PreviewModal
   const isLastQuestion = currentQuestion === questions.length - 1;
 
   const handleNext = () => {
-    if (selected !== null) {
+    if (question.type === 'essay' || selected !== null) {
       if (!isLastQuestion) {
         setCurrentQuestion(prev => prev + 1);
         setSelected(null);
@@ -147,25 +147,31 @@ export function PreviewModal({ isOpen, onClose, title, questions }: PreviewModal
 
             <h2 className={styles.questionText} style={{ fontSize: '1.25rem' }}>{question.text}</h2>
             
-            <div className={styles.optionsGrid}>
-              {question.options.map((option, index) => {
-                if (question.type === 'true_false' && index > 1) return null;
-                if (!option && question.type === 'multiple_choice') return null;
-                
-                return (
-                  <label key={index} className={styles.optionLabel}>
-                    <input 
-                      type="radio" 
-                      name="preview-option" 
-                      className={styles.optionInput} 
-                      checked={selected === index}
-                      onChange={() => handleOptionSelect(index)}
-                    />
-                    <span className={styles.optionText}>{option}</span>
-                  </label>
-                );
-              })}
-            </div>
+            {question.type === 'essay' ? (
+              <div style={{ padding: '1.5rem', border: '2px dashed var(--border)', borderRadius: '1rem', textAlign: 'center', color: 'var(--muted-foreground)' }}>
+                [مساحة إجابة الطالب (نص أو صورة)]
+              </div>
+            ) : (
+              <div className={styles.optionsGrid}>
+                {question.options.map((option, index) => {
+                  if (question.type === 'true_false' && index > 1) return null;
+                  if (!option && question.type === 'multiple_choice') return null;
+                  
+                  return (
+                    <label key={index} className={styles.optionLabel}>
+                      <input 
+                        type="radio" 
+                        name="preview-option" 
+                        className={styles.optionInput} 
+                        checked={selected === index}
+                        onChange={() => handleOptionSelect(index)}
+                      />
+                      <span className={styles.optionText}>{option}</span>
+                    </label>
+                  );
+                })}
+              </div>
+            )}
 
             {showExplanation && (
               <div style={{ 
@@ -187,7 +193,7 @@ export function PreviewModal({ isOpen, onClose, title, questions }: PreviewModal
             <div style={{ marginTop: '2rem' }}>
               <Button 
                 onClick={handleNext} 
-                disabled={selected === null}
+                disabled={question.type !== 'essay' && selected === null}
                 variant="primary"
                 fullWidth
               >

@@ -8,10 +8,16 @@ export async function getHomeworkByShareCode(shareCode: string) {
     .from('homeworks')
     .select(`
       id, title, teacher_id, is_published,
-      profiles (full_name),
+      randomize_questions,
+      randomize_answers,
+      layout,
+      time_limit,
+      max_attempts,
+      total_students,
+      profiles (full_name, settings),
       questions (id, question_text, option_a, option_b, option_c, option_d, order_index, explanation, question_type, image_url)
     `)
-    .eq('share_code', shareCode)
+    .eq('share_code', shareCode.trim().toUpperCase())
     .filter('questions.order_index', 'gte', 0)
     .single()
 
@@ -25,38 +31,82 @@ export async function getHomeworkByShareCode(shareCode: string) {
     question_text: String(q.question_text),
     options: [String(q.option_a), String(q.option_b), String(q.option_c), String(q.option_d)],
     explanation: q.explanation ? String(q.explanation) : null,
-    question_type: (q.question_type as 'multiple_choice' | 'true_false') || 'multiple_choice',
+    question_type: (q.question_type as 'multiple_choice' | 'true_false' | 'essay') || 'multiple_choice',
     image_url: q.image_url ? String(q.image_url) : null,
   }))
 
   return {
     id: data.id,
     title: data.title,
-    teacherName: data.profiles ? String(((data.profiles as unknown) as Record<string, unknown>).full_name) : 'Unknown',
+    teacherName: (data.profiles as any)?.full_name,
+    settings: {
+      ...(data.profiles as any)?.settings?.homework,
+      ...(data.profiles as any)?.settings?.privacy,
+      randomizeQuestions: data.randomize_questions ?? (data.profiles as any)?.settings?.homework?.randomizeQuestions,
+      randomizeAnswers: data.randomize_answers ?? (data.profiles as any)?.settings?.homework?.randomizeAnswers,
+      layout: data.layout ?? (data.profiles as any)?.settings?.homework?.layout ?? 'wizard',
+      timeLimit: data.time_limit,
+      maxAttempts: data.max_attempts,
+      totalStudents: data.total_students,
+    },
     questions: questions,
     totalQuestions: questions.length
   }
 }
 
+export async function getAttemptCount(homeworkId: string, phone: string, name: string) {
+  const supabase = await createClient()
+  let query = supabase
+    .from('submissions')
+    .select('*', { count: 'exact', head: true })
+    .eq('homework_id', homeworkId)
+
+  if (phone && phone.trim()) {
+    query = query.eq('student_phone', phone.trim())
+  } else {
+    query = query.eq('student_name', name.trim())
+  }
+
+  const { count, error } = await query
+
+  if (error) return 0
+  return count || 0
+}
+
 export type SubmissionInput = {
   shareCode: string;
   studentName: string;
-  answers: { questionId: string; selectedIndex: number }[];
+  studentPhone: string;
+  parentPhone?: string;
+  answers: { questionId: string; selectedIndex?: number; answerText?: string }[];
+  duration?: number;
 }
 
 export async function submitHomework(data: SubmissionInput) {
   const supabase = await createClient()
 
   // 1. Fetch homework and questions to validate answers
+  const cleanShareCode = data.shareCode.trim().toUpperCase()
+  const cleanStudentName = data.studentName.trim()
+  const cleanStudentPhone = data.studentPhone?.trim() || ''
+  const cleanParentPhone = data.parentPhone?.trim() || null
+
   const { data: hw, error: hwError } = await supabase
     .from('homeworks')
-    .select(`id, is_published, questions(id, correct_answer, order_index)`)
-    .eq('share_code', data.shareCode)
+    .select(`
+      id, 
+      is_published, 
+      max_attempts, 
+      profiles (settings), 
+      questions (id, correct_answer, order_index, question_type)
+    `)
+    .eq('share_code', cleanShareCode)
     .filter('questions.order_index', 'gte', 0)
     .single()
 
   if (hwError || !hw || !hw.is_published) {
-    return { error: 'Homework not found or unpublished' }
+    if (hwError) console.error('[submitHomework] Fetch error:', hwError)
+    return { error: 'الواجب غير موجود أو غير منشور' }
   }
 
   const optionMap = ['a', 'b', 'c', 'd']
@@ -64,51 +114,76 @@ export async function submitHomework(data: SubmissionInput) {
 
   // Check answers
   const answersData = data.answers.map(ans => {
-    const question = (hw.questions as Record<string, unknown>[]).find(q => q.id === ans.questionId)
-    const isCorrect = question && question.correct_answer === optionMap[ans.selectedIndex]
-    if (isCorrect) correctCount++
+    const question = (hw.questions as any[]).find(q => q.id === ans.questionId)
+    
+    let isCorrect = false
+    let selectedOption: string | null = null
+    let textAnswer: string | null = null
+    let imageUrls: string[] = []
+
+    if (question?.question_type === 'essay') {
+      try {
+        const essayData = JSON.parse(ans.answerText || '{}');
+        textAnswer = essayData.text || '';
+        if (essayData.imageUrl) imageUrls = [essayData.imageUrl];
+      } catch {
+        textAnswer = ans.answerText || '';
+      }
+      selectedOption = null; // Important: set to NULL to avoid constraint violation
+      isCorrect = false; // Graded manually later
+    } else if (ans.selectedIndex !== undefined) {
+      selectedOption = optionMap[ans.selectedIndex]
+      isCorrect = question ? question.correct_answer === selectedOption : false
+      if (isCorrect) correctCount++
+    }
+
     return {
       question_id: ans.questionId,
-      selected_option: optionMap[ans.selectedIndex],
-      is_correct: isCorrect
+      selected_option: selectedOption,
+      is_correct: isCorrect,
+      text_answer: textAnswer,
+      image_urls: imageUrls
     }
   })
 
-  // 2. Insert Submission
-  // Note: RLS unique constraint on (homework_id, student_name) might fail here if duplicate
-  const { data: subData, error: subError } = await supabase
-    .from('submissions')
-    .insert({
-      homework_id: hw.id,
-      student_name: data.studentName,
-      score: correctCount,
-      total_questions: hw.questions.length
-    })
-    .select()
-    .single()
+  // 2. Check for attempt limit again (server-side safety)
+  const currentAttempts = await getAttemptCount(hw.id, cleanStudentPhone, cleanStudentName);
+  
+  // Settings can be on the homework or profile
+  const mergedSettings = {
+    ...(hw.profiles as any)?.settings?.homework,
+    ...(hw.profiles as any)?.settings?.privacy,
+  };
+  
+  const maxAllowed = mergedSettings?.maxAttempts ?? hw.max_attempts ?? 1;
+
+  if (maxAllowed > 0 && currentAttempts >= maxAllowed) {
+    const identifyStr = cleanStudentPhone ? `برقم الهاتف هذا (${cleanStudentPhone})` : `بهذا الاسم (${cleanStudentName})`;
+    return { error: `لقد استنفدت جميع المحاولات المتاحة لهذا الواجب (${maxAllowed} محاولات) ${identifyStr}.` };
+  }
+
+  // 3. Insert Submission and Answers atomically using RPC
+  const { data: submissionId, error: subError } = await supabase.rpc('submit_homework_secure', {
+    p_homework_id: hw.id,
+    p_student_name: cleanStudentName,
+    p_student_phone: cleanStudentPhone,
+    p_score: correctCount,
+    p_total_questions: hw.questions.length,
+    p_answers: answersData,
+    p_duration: data.duration || 0,
+    p_parent_phone: cleanParentPhone
+  })
 
   if (subError) {
-    // Check if it's unique constraint violation
+    console.error('[submitHomework] RPC Error:', subError);
     if (subError.code === '23505') {
-       return { error: 'لقد قمت بتسليم هذا الواجب مسبقاً بنفس الاسم.' }
+       const identifyStr = cleanStudentPhone ? `بنفس رقم الهاتف (${cleanStudentPhone})` : `بنفس الاسم (${cleanStudentName})`;
+       return { error: `لقد قمت بتسليم هذا الواجب مسبقاً ${identifyStr}.` }
     }
     return { error: subError.message }
   }
 
-  // 3. Insert Answers
-  const finalAnswersData = answersData.map(a => ({
-    submission_id: subData.id,
-    question_id: a.question_id,
-    selected_option: a.selected_option,
-    is_correct: a.is_correct
-  }))
-
-  if (finalAnswersData.length > 0) {
-    const { error: ansError } = await supabase.from('answers').insert(finalAnswersData)
-    if (ansError) return { error: ansError.message }
-  }
-
-  return { success: true, submissionId: subData.id }
+  return { success: true, submissionId }
 }
 
 export async function getSubmissionResult(submissionId: string) {

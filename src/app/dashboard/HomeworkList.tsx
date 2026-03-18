@@ -162,7 +162,7 @@ export function HomeworkList({ initialHomeworks }: HomeworkListProps) {
               options,
               correctOption: qMap[String(q.correct_answer)] ?? 0,
               explanation: q.explanation ? String(q.explanation) : '',
-              type: (q.question_type as 'multiple_choice' | 'true_false') || 'multiple_choice',
+              type: (q.question_type as 'multiple_choice' | 'true_false' | 'essay') || 'multiple_choice',
               imageUrl: q.image_url ? String(q.image_url) : null
           };
         });
@@ -198,7 +198,16 @@ export function HomeworkList({ initialHomeworks }: HomeworkListProps) {
 
   return (
     <div className={styles.container}>
-      {toast && <div className={styles.toast}>{toast}</div>}
+      {toast && (
+        <div 
+          className={styles.toast} 
+          id="toast-notification" 
+          role="status" 
+          aria-live="polite"
+        >
+          {toast}
+        </div>
+      )}
 
       {/* Search and Filters */}
       <div className={styles.toolbar}>
@@ -286,7 +295,7 @@ export function HomeworkList({ initialHomeworks }: HomeworkListProps) {
                 </div>
                 <h3 className={styles.hwCardTitle}>{hw.title}</h3>
                 <p className={styles.hwCardDate}>
-                  {new Date(hw.created_at).toLocaleDateString('ar-EG')} · {hw.question_count} أسئلة
+                  {(hw.created_at ? new Date(hw.created_at) : new Date()).toLocaleDateString('ar-EG')} · {hw.question_count} أسئلة
                 </p>
               </div>
 

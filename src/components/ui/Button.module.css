@@ -79,6 +79,20 @@
   transform: translateY(0) scale(0.98);
 }
 
+.danger {
+  background-color: #ef4444;
+  color: #ffffff;
+  box-shadow: 0 4px 14px 0 rgba(239, 68, 68, 0.3);
+}
+.danger:hover:not(:disabled) {
+  background-color: #dc2626;
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 8px 25px 0 rgba(239, 68, 68, 0.4);
+}
+.danger:active:not(:disabled) {
+  transform: translateY(0) scale(0.98);
+}
+
 /* Sizes */
 .sm {
   height: 2.25rem;

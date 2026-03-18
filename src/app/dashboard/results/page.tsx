@@ -33,11 +33,6 @@ export default async function ResultsPage() {
           <h1 className={styles.pageTitle}>نتائج الواجبات</h1>
           <p className={styles.pageSubtitle}>تتبع أداء طلابك وحلل نتائج الاختبارات بدقة.</p>
         </div>
-        <div className={styles.headerActions}>
-           <Link href="/dashboard/create">
-             <Button variant="primary">＋ واجب جديد</Button>
-           </Link>
-        </div>
       </header>
 
       {/* Summary Stats Row */}

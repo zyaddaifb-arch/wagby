@@ -7,21 +7,16 @@ import { Switch } from '@/components/ui/Switch';
 import { Select } from '@/components/ui/Select';
 import { playSound } from '@/utils/audio';
 import styles from './settings.module.css';
-import { updateProfile, UserSettings, deleteAccount } from './actions';
+import { updateProfile, UserSettings, deleteAccount, updatePassword } from './actions';
 import { logout } from '@/app/auth/actions';
-import { LogOut, Trash2, AlertTriangle } from 'lucide-react';
+import { LogOut, Trash2, AlertTriangle, Key } from 'lucide-react';
+import { Modal } from '@/components/ui/Modal';
 
 interface SettingsFormProps {
   initialData: any;
 }
 
 const DEFAULT_SETTINGS: UserSettings = {
-  appearance: {
-    theme: 'dark',
-    themeColor: '#1e3a8a',
-    fontSize: 'medium',
-    uiDecorations: true,
-  },
   homework: {
     showResult: 'immediate',
     showCorrectAnswers: true,
@@ -32,24 +27,9 @@ const DEFAULT_SETTINGS: UserSettings = {
     randomizeAnswers: false,
     layout: 'wizard',
   },
-  notifications: {
-    onSubmission: true,
-    dailyReport: false,
-    weeklyReport: true,
-    email: true,
-    whatsapp: false,
-  },
   privacy: {
-    linkOnly: true,
-    preventDuplicates: true,
-    requirePhone: false,
+    requirePhone: true,
     optionalParentPhone: false,
-  },
-  branding: {
-    publicName: '',
-    welcomeMessage: 'أهلاً بك في الواجب!',
-    finalMessage: 'أحسنت! تم إرسال إجاباتك بنجاح.',
-    customColors: false,
   },
 };
 
@@ -65,6 +45,14 @@ export function SettingsForm({ initialData }: SettingsFormProps) {
     subject: initialData?.subject || '',
     settings: { ...DEFAULT_SETTINGS, ...(initialData?.settings || {}) } as UserSettings,
   });
+
+  const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
+  const [passwordData, setPasswordData] = useState({
+    newPassword: '',
+    confirmPassword: '',
+  });
+  const [passwordError, setPasswordError] = useState<string | null>(null);
+  const [passwordSuccess, setPasswordSuccess] = useState(false);
 
   const handleSave = async () => {
     setIsSaving(true);
@@ -112,6 +100,40 @@ export function SettingsForm({ initialData }: SettingsFormProps) {
     }
   };
 
+  const handleChangePassword = async () => {
+    setPasswordError(null);
+    setPasswordSuccess(false);
+
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      setPasswordError('كلمات المرور غير متطابقة');
+      playSound('error');
+      return;
+    }
+
+    if (passwordData.newPassword.length < 6) {
+      setPasswordError('يجب أن لا تقل كلمة المرور عن 6 أحرف');
+      playSound('error');
+      return;
+    }
+
+    setIsSaving(true);
+    const result = await updatePassword(passwordData.newPassword);
+    setIsSaving(false);
+
+    if (result.success) {
+      setPasswordSuccess(true);
+      playSound('success');
+      setPasswordData({ newPassword: '', confirmPassword: '' });
+      setTimeout(() => {
+        setIsPasswordModalOpen(false);
+        setPasswordSuccess(false);
+      }, 2000);
+    } else {
+      setPasswordError(result.error || 'فشل تغيير كلمة المرور');
+      playSound('error');
+    }
+  };
+
   const handleReset = () => {
     playSound('pop');
     setFormData({
@@ -142,11 +164,8 @@ export function SettingsForm({ initialData }: SettingsFormProps) {
         <CardContent className={styles.navMenu}>
           {[
             { id: 'account', label: 'الحساب', icon: '👤' },
-            { id: 'appearance', label: 'المظهر', icon: '🎨' },
             { id: 'homework', label: 'سلوك الواجبات', icon: '📝' },
-            { id: 'notifications', label: 'التنبيهات', icon: '🔔' },
             { id: 'privacy', label: 'الخصوصية والأمان', icon: '🔒' },
-            { id: 'branding', label: 'الهوية البصرية', icon: '✨' },
           ].map((item) => (
             <button
               key={item.id}
@@ -184,7 +203,7 @@ export function SettingsForm({ initialData }: SettingsFormProps) {
         {/* Account Section */}
         <div id="account" className={styles.section}>
           <Card className={styles.sectionCard}>
-            <CardContent style={{ padding: '2rem' }}>
+            <CardContent className={styles.sectionContent}>
               <h2 className={styles.sectionTitle}>إعدادات الحساب</h2>
               <div className={styles.fieldGroup}>
                 <div className={styles.grid2cols}>
@@ -214,10 +233,13 @@ export function SettingsForm({ initialData }: SettingsFormProps) {
                 <div style={{ display: 'flex', gap: '1rem' }}>
                   <Button 
                     variant="outline" 
-                    onClick={() => alert('ميزة تغيير كلمة المرور ستتوفر قريباً في التحديث القادم!')}
+                    onClick={() => {
+                        setIsPasswordModalOpen(true);
+                        playSound('pop');
+                    }}
                     style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
                   >
-                    تغيير كلمة المرور
+                    <Key size={18} /> تغيير كلمة المرور
                   </Button>
                   <Button 
                     variant="outline" 
@@ -232,53 +254,10 @@ export function SettingsForm({ initialData }: SettingsFormProps) {
           </Card>
         </div>
 
-        {/* Appearance Section */}
-        <div id="appearance" className={styles.section}>
-          <Card className={styles.sectionCard}>
-            <CardContent style={{ padding: '2rem' }}>
-              <h2 className={styles.sectionTitle}>المظهر</h2>
-              <div className={styles.fieldGroup}>
-                <Select
-                  label="السمة (Theme)"
-                  value={formData.settings.appearance.theme}
-                  onChange={(val) => updateSettings('appearance.theme', val)}
-                  options={[
-                    { label: 'داكن (Dark)', value: 'dark' },
-                    { label: 'فاتح (Light)', value: 'light' },
-                  ]}
-                />
-                <div className={styles.grid2cols}>
-                  <Select
-                    label="حجم الخط"
-                    value={formData.settings.appearance.fontSize}
-                    onChange={(val) => updateSettings('appearance.fontSize', val)}
-                    options={[
-                      { label: 'صغير', value: 'small' },
-                      { label: 'متوسط', value: 'medium' },
-                      { label: 'كبير', value: 'large' },
-                    ]}
-                  />
-                  <Input
-                    label="لون السمة الرئيسي"
-                    type="color"
-                    value={formData.settings.appearance.themeColor}
-                    onChange={(e) => updateSettings('appearance.themeColor', e.target.value)}
-                  />
-                </div>
-                <Switch
-                  label="تفعيل الزخارف والرسوم التوضيحية"
-                  checked={formData.settings.appearance.uiDecorations}
-                  onChange={(val) => updateSettings('appearance.uiDecorations', val)}
-                />
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
         {/* Homework Behavior Section */}
         <div id="homework" className={styles.section}>
           <Card className={styles.sectionCard}>
-            <CardContent style={{ padding: '2rem' }}>
+            <CardContent className={styles.sectionContent}>
               <h2 className={styles.sectionTitle}>سلوك الواجبات</h2>
               <div className={styles.fieldGroup}>
                 <Select
@@ -310,10 +289,11 @@ export function SettingsForm({ initialData }: SettingsFormProps) {
                   />
                   {formData.settings.homework.allowMultipleAttempts && (
                     <Input
-                      label="أقصى عدد للمحاولات"
+                      label="أقصى عدد من المحاولات (0 = غير محدود)" 
                       type="number"
+                      min={0}
                       value={formData.settings.homework.maxAttempts}
-                      onChange={(e) => updateSettings('homework.maxAttempts', parseInt(e.target.value))}
+                      onChange={(e) => updateSettings('homework.maxAttempts', parseInt(e.target.value) || 0)}
                     />
                   )}
                 </div>
@@ -334,47 +314,9 @@ export function SettingsForm({ initialData }: SettingsFormProps) {
                   value={formData.settings.homework.layout}
                   onChange={(val) => updateSettings('homework.layout', val)}
                   options={[
-                    { label: 'سؤال تلو الآخر (Wizard)', value: 'wizard' },
+                    { label: 'سؤال تلو الآخر', value: 'wizard' },
                     { label: 'جميع الأسئلة في صفحة واحدة', value: 'scroll' },
                   ]}
-                />
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Notifications Section */}
-        <div id="notifications" className={styles.section}>
-          <Card className={styles.sectionCard}>
-            <CardContent style={{ padding: '2rem' }}>
-              <h2 className={styles.sectionTitle}>التنبيهات</h2>
-              <div className={styles.fieldGroup}>
-                <Switch
-                  label="تنبيه عند تسليم طالب للواجب"
-                  checked={formData.settings.notifications.onSubmission}
-                  onChange={(val) => updateSettings('notifications.onSubmission', val)}
-                />
-                <Switch
-                  label="تقرير يومي بالنتائج"
-                  checked={formData.settings.notifications.dailyReport}
-                  onChange={(val) => updateSettings('notifications.dailyReport', val)}
-                />
-                <Switch
-                  label="تقرير أسبوعي شامل"
-                  checked={formData.settings.notifications.weeklyReport}
-                  onChange={(val) => updateSettings('notifications.weeklyReport', val)}
-                />
-                <hr style={{ border: 'none', borderTop: '1px solid var(--border)' }} />
-                <Switch
-                  label="إشعارات البريد الإلكتروني"
-                  checked={formData.settings.notifications.email}
-                  onChange={(val) => updateSettings('notifications.email', val)}
-                />
-                <Switch
-                  label="إشعارات واتساب (قريباً)"
-                  checked={formData.settings.notifications.whatsapp}
-                  onChange={(val) => updateSettings('notifications.whatsapp', val)}
-                  disabled
                 />
               </div>
             </CardContent>
@@ -384,26 +326,16 @@ export function SettingsForm({ initialData }: SettingsFormProps) {
         {/* Privacy Section */}
         <div id="privacy" className={styles.section}>
              <Card className={styles.sectionCard}>
-                <CardContent style={{ padding: '2rem' }}>
+                <CardContent className={styles.sectionContent}>
                 <h2 className={styles.sectionTitle}>الخصوصية والأمان</h2>
                 <div className={styles.fieldGroup}>
-                    <Switch
-                        label="الوصول عبر الرابط المباشر فقط"
-                        checked={formData.settings.privacy.linkOnly}
-                        onChange={(val) => updateSettings('privacy.linkOnly', val)}
-                    />
-                    <Switch
-                        label="منع التكرار (تسليمة واحدة لكل طالب)"
-                        checked={formData.settings.privacy.preventDuplicates}
-                        onChange={(val) => updateSettings('privacy.preventDuplicates', val)}
-                    />
                     <Switch
                         label="طلب رقم هاتف الطالب قبل البدء"
                         checked={formData.settings.privacy.requirePhone}
                         onChange={(val) => updateSettings('privacy.requirePhone', val)}
                     />
                     <Switch
-                        label="إضافة رقم ولي الأمر (اختياري)"
+                        label="طلب رقم ولي أمر الطالب"
                         checked={formData.settings.privacy.optionalParentPhone}
                         onChange={(val) => updateSettings('privacy.optionalParentPhone', val)}
                     />
@@ -412,42 +344,9 @@ export function SettingsForm({ initialData }: SettingsFormProps) {
             </Card>
         </div>
 
-        {/* Branding Section */}
-        <div id="branding" className={styles.section}>
-             <Card className={styles.sectionCard}>
-                <CardContent style={{ padding: '2rem' }}>
-                <h2 className={styles.sectionTitle}>الهوية البصرية</h2>
-                <div className={styles.fieldGroup}>
-                    <Input
-                        label="اسم المدرس (يظهر للظلال)"
-                        placeholder="مثال: أ. محمد أحمد"
-                        value={formData.settings.branding.publicName}
-                        onChange={(e) => updateSettings('branding.publicName', e.target.value)}
-                    />
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                        <label style={{ fontSize: '0.875rem', fontWeight: '600', color: 'var(--muted-foreground)' }}>رسالة الترحيب</label>
-                        <textarea 
-                            value={formData.settings.branding.welcomeMessage}
-                            onChange={(e) => updateSettings('branding.welcomeMessage', e.target.value)}
-                            style={{ padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--border)', backgroundColor: 'var(--background)', color: 'var(--foreground)', height: '80px' }}
-                        />
-                    </div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                        <label style={{ fontSize: '0.875rem', fontWeight: '600', color: 'var(--muted-foreground)' }}>رسالة النهاية</label>
-                        <textarea 
-                            value={formData.settings.branding.finalMessage}
-                            onChange={(e) => updateSettings('branding.finalMessage', e.target.value)}
-                            style={{ padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid var(--border)', backgroundColor: 'var(--background)', color: 'var(--foreground)', height: '80px' }}
-                        />
-                    </div>
-                </div>
-                </CardContent>
-            </Card>
-        </div>
-
         {/* Danger Zone */}
         <Card className={`${styles.sectionCard} ${styles.dangerSection}`}>
-          <CardContent style={{ padding: '2rem' }}>
+          <CardContent className={styles.sectionContent}>
             <h2 className={styles.sectionTitle} style={{ color: 'var(--danger)', display: 'flex', alignItems: 'center', gap: '10px' }}>
               <AlertTriangle size={24} /> منطقة الخطر
             </h2>
@@ -476,6 +375,62 @@ export function SettingsForm({ initialData }: SettingsFormProps) {
           {isSaving ? 'جاري الحفظ...' : 'حفظ التغييرات'}
         </Button>
       </div>
+
+      {/* Change Password Modal */}
+      <Modal 
+        isOpen={isPasswordModalOpen} 
+        onClose={() => setIsPasswordModalOpen(false)} 
+        title="تغيير كلمة المرور"
+      >
+        <div className={styles.fieldGroup} style={{ gap: '1.5rem' }}>
+          <Input
+            label="كلمة المرور الجديدة"
+            type="password"
+            autoComplete="new-password"
+            value={passwordData.newPassword}
+            onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
+            placeholder="أدخل كلمة المرور الجديدة"
+          />
+          <Input
+            label="تأكيد كلمة المرور"
+            type="password"
+            autoComplete="new-password"
+            value={passwordData.confirmPassword}
+            onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
+            placeholder="أعد كتابة كلمة المرور"
+          />
+          
+          {passwordError && (
+            <div style={{ color: 'var(--danger)', fontSize: '0.9rem', textAlign: 'center' }}>
+              {passwordError}
+            </div>
+          )}
+          
+          {passwordSuccess && (
+            <div style={{ color: 'var(--success)', fontSize: '0.9rem', textAlign: 'center' }}>
+              ✅ تم تغيير كلمة المرور بنجاح
+            </div>
+          )}
+
+          <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
+            <Button 
+              variant="primary" 
+              onClick={handleChangePassword} 
+              disabled={isSaving || !passwordData.newPassword || !passwordData.confirmPassword}
+              style={{ flex: 1 }}
+            >
+              {isSaving ? 'جاري الحفظ...' : 'تحديث كلمة المرور'}
+            </Button>
+            <Button 
+              variant="outline" 
+              onClick={() => setIsPasswordModalOpen(false)}
+              style={{ flex: 1 }}
+            >
+              إلغاء
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }

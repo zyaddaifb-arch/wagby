@@ -1,162 +1,386 @@
 [
   {
     "id": "TC001",
-    "title": "Landing page hero renders with Arabic RTL hero text visible",
-    "description": "Verifies the public landing page loads successfully and displays visible Arabic hero content.",
-    "category": "Landing Page UI",
+    "title": "Create and publish a homework with Multiple Choice and True/False questions",
+    "description": "Verifies an authenticated teacher can complete the create wizard, publish, and see the homework in the homework list.",
+    "category": "Homework Creation",
     "priority": "High",
     "steps": [
       {
         "type": "action",
-        "description": "Navigate to /"
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the Login button"
       },
       {
         "type": "assertion",
-        "description": "Verify element \"hero section\" is visible"
+        "description": "Verify URL contains \"/dashboard\""
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Create\" or \"Create Homework\" in the dashboard navigation"
       },
       {
         "type": "assertion",
-        "description": "Verify visible Arabic text is present in the hero area"
+        "description": "Verify URL contains \"/dashboard/create\""
+      },
+      {
+        "type": "action",
+        "description": "Type \"Math Quiz 1\" into the homework title field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Add Question\" button"
+      },
+      {
+        "type": "action",
+        "description": "Select \"Multiple Choice\" as the question type"
+      },
+      {
+        "type": "action",
+        "description": "Type \"What is 2 + 2?\" into the question text field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"3\" into the first choice field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"4\" into the second choice field"
+      },
+      {
+        "type": "action",
+        "description": "Click to mark the choice \"4\" as the correct answer"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Add Question\" button"
+      },
+      {
+        "type": "action",
+        "description": "Select \"True/False\" as the question type"
+      },
+      {
+        "type": "action",
+        "description": "Type \"The number 5 is greater than 3.\" into the question text field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Publish\" button"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Homeworks\" in the dashboard navigation"
       },
       {
         "type": "assertion",
-        "description": "Verify element \"main CTA button\" is visible"
+        "description": "Verify URL contains \"/dashboard/hw\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Math Quiz 1\" is visible"
       }
     ]
   },
   {
     "id": "TC002",
-    "title": "Scroll through landing page sections and confirm features content is visible",
-    "description": "Verifies the user can scroll the landing page and see multiple sections (hero and features) rendered.",
-    "category": "Landing Page UI",
+    "title": "Validation: publishing without a title shows an error",
+    "description": "Verifies the create wizard prevents publishing when the required homework title is missing.",
+    "category": "Homework Creation",
     "priority": "High",
     "steps": [
       {
         "type": "action",
-        "description": "Navigate to /"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify element \"hero section\" is visible"
+        "description": "Navigate to /login"
       },
       {
         "type": "action",
-        "description": "Scroll to \"features section\""
-      },
-      {
-        "type": "assertion",
-        "description": "Verify element \"features section\" is visible"
+        "description": "Type \"{{LOGIN_USER}}\" into the email field"
       },
       {
         "type": "action",
-        "description": "Scroll to \"bottom of the landing page\""
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the Login button"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Create\" or \"Create Homework\" in the dashboard navigation"
       },
       {
         "type": "assertion",
-        "description": "Verify element \"main CTA button\" is visible"
+        "description": "Verify URL contains \"/dashboard/create\""
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Add Question\" button"
+      },
+      {
+        "type": "action",
+        "description": "Select \"True/False\" as the question type"
+      },
+      {
+        "type": "action",
+        "description": "Type \"The sun rises in the east.\" into the question text field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Publish\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"title\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"required\" is visible"
       }
     ]
   },
   {
     "id": "TC003",
-    "title": "Main CTA from landing page routes to signup",
-    "description": "Verifies clicking the main call-to-action from the landing page routes to the signup page.",
-    "category": "Landing Page UI",
+    "title": "Save as draft from the create wizard and see it listed",
+    "description": "Verifies an authenticated teacher can save a homework as a draft and find it in the homework list.",
+    "category": "Homework Creation",
     "priority": "High",
     "steps": [
       {
         "type": "action",
-        "description": "Navigate to /"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify element \"main CTA button\" is visible"
+        "description": "Navigate to /login"
       },
       {
         "type": "action",
-        "description": "Click on \"main CTA button\""
+        "description": "Type \"{{LOGIN_USER}}\" into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the Login button"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Create\" or \"Create Homework\" in the dashboard navigation"
       },
       {
         "type": "assertion",
-        "description": "Verify URL contains \"/signup\""
+        "description": "Verify URL contains \"/dashboard/create\""
+      },
+      {
+        "type": "action",
+        "description": "Type \"Draft Science HW\" into the homework title field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Add Question\" button"
+      },
+      {
+        "type": "action",
+        "description": "Select \"Multiple Choice\" as the question type"
+      },
+      {
+        "type": "action",
+        "description": "Type \"Water freezes at 0°C.\" into the question text field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"True\" into the first choice field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"False\" into the second choice field"
+      },
+      {
+        "type": "action",
+        "description": "Click to mark the choice \"True\" as the correct answer"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Save as draft\" button"
       },
       {
         "type": "assertion",
-        "description": "Verify element \"signup form\" is visible"
+        "description": "Verify text \"draft\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Homeworks\" in the dashboard navigation"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/dashboard/hw\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Draft Science HW\" is visible"
       }
     ]
   },
   {
     "id": "TC004",
-    "title": "Fallback path: landing page CTA can route to login prompt instead of signup",
-    "description": "Verifies that if the CTA leads to login instead of signup, the login page is shown with a login form.",
-    "category": "Landing Page UI",
+    "title": "Optional settings can be set while creating a homework",
+    "description": "Verifies the teacher can set optional settings (grade level, time limit, max attempts) and still publish successfully.",
+    "category": "Homework Creation",
     "priority": "Medium",
     "steps": [
       {
         "type": "action",
-        "description": "Navigate to /"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify element \"main CTA button\" is visible"
+        "description": "Navigate to /login"
       },
       {
         "type": "action",
-        "description": "Click on \"main CTA button\""
+        "description": "Type \"{{LOGIN_USER}}\" into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the Login button"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Create\" or \"Create Homework\" in the dashboard navigation"
       },
       {
         "type": "assertion",
-        "description": "Verify URL contains \"/login\""
+        "description": "Verify URL contains \"/dashboard/create\""
+      },
+      {
+        "type": "action",
+        "description": "Type \"Settings Check HW\" into the homework title field"
+      },
+      {
+        "type": "action",
+        "description": "Select \"Grade 5\" from the grade level dropdown"
+      },
+      {
+        "type": "action",
+        "description": "Type \"15\" into the time limit field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"2\" into the max attempts field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Add Question\" button"
+      },
+      {
+        "type": "action",
+        "description": "Select \"True/False\" as the question type"
+      },
+      {
+        "type": "action",
+        "description": "Type \"Plants make food using sunlight.\" into the question text field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Publish\" button"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Homeworks\" in the dashboard navigation"
       },
       {
         "type": "assertion",
-        "description": "Verify element \"email field\" is visible"
+        "description": "Verify URL contains \"/dashboard/hw\"},{"
       },
       {
         "type": "assertion",
-        "description": "Verify element \"password field\" is visible"
+        "description": "Verify text \"Settings Check HW\" is visible"
       }
     ]
   },
   {
     "id": "TC005",
-    "title": "Landing page remains usable after repeated scrolling (CTA still visible and clickable)",
-    "description": "Verifies basic stability of interactive UI elements after scrolling through sections.",
-    "category": "Landing Page UI",
+    "title": "Multiple Choice requires a correct answer selection before publishing",
+    "description": "Verifies the UI blocks publishing when a Multiple Choice question has no correct answer marked.",
+    "category": "Homework Creation",
     "priority": "Medium",
     "steps": [
       {
         "type": "action",
-        "description": "Navigate to /"
+        "description": "Navigate to /login"
       },
       {
         "type": "action",
-        "description": "Scroll to \"features section\""
+        "description": "Type \"{{LOGIN_USER}}\" into the email field"
       },
       {
         "type": "action",
-        "description": "Scroll to \"hero section\""
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the Login button"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Create\" or \"Create Homework\" in the dashboard navigation"
       },
       {
         "type": "assertion",
-        "description": "Verify element \"main CTA button\" is visible"
+        "description": "Verify URL contains \"/dashboard/create\""
       },
       {
         "type": "action",
-        "description": "Click on \"main CTA button\""
+        "description": "Type \"MC No Answer HW\" into the homework title field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Add Question\" button"
+      },
+      {
+        "type": "action",
+        "description": "Select \"Multiple Choice\" as the question type"
+      },
+      {
+        "type": "action",
+        "description": "Type \"Select the primary color.\" into the question text field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"Red\" into the first choice field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"Green\" into the second choice field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Publish\" button"
       },
       {
         "type": "assertion",
-        "description": "Verify URL contains \"/signup\""
+        "description": "Verify text \"correct\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"required\" is visible"
       }
     ]
   },
   {
     "id": "TC006",
-    "title": "Login succeeds and redirects to dashboard",
-    "description": "Verifies that a user can log in with valid credentials and is redirected to the teacher dashboard.",
-    "category": "Protected Routes & Session Persistence",
+    "title": "Dashboard loads and shows homework list (active and drafts) after login",
+    "description": "Verifies a teacher can log in and see the dashboard with a visible list of homeworks including active/draft sections or labels.",
+    "category": "Teacher Dashboard & Homework Management",
     "priority": "High",
     "steps": [
       {
@@ -164,12 +388,8 @@
         "description": "Navigate to /login"
       },
       {
-        "type": "assertion",
-        "description": "Verify URL contains \"/login\""
-      },
-      {
         "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
+        "description": "Type \"{{LOGIN_USER}}\" into the email field"
       },
       {
         "type": "action",
@@ -177,7 +397,7 @@
       },
       {
         "type": "action",
-        "description": "Click on the \"Login\" button"
+        "description": "Click the \"Login\" button"
       },
       {
         "type": "assertion",
@@ -185,16 +405,24 @@
       },
       {
         "type": "assertion",
-        "description": "Verify element \"Dashboard\" is visible"
+        "description": "Verify text \"Homeworks\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Draft\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Active\" is visible"
       }
     ]
   },
   {
     "id": "TC007",
-    "title": "After login, user can navigate to settings via UI and remain authenticated",
-    "description": "Verifies that an authenticated user can reach settings from the dashboard without being redirected back to login.",
-    "category": "Protected Routes & Session Persistence",
-    "priority": "Medium",
+    "title": "Open a homework from dashboard list and land on homework list/details area",
+    "description": "Verifies selecting a homework item from the dashboard transitions to the homework management area and displays homework-related content.",
+    "category": "Teacher Dashboard & Homework Management",
+    "priority": "High",
     "steps": [
       {
         "type": "action",
@@ -202,7 +430,7 @@
       },
       {
         "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
+        "description": "Type \"{{LOGIN_USER}}\" into the email field"
       },
       {
         "type": "action",
@@ -210,32 +438,32 @@
       },
       {
         "type": "action",
-        "description": "Click on the \"Login\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/dashboard\""
+        "description": "Click the \"Login\" button"
       },
       {
         "type": "action",
-        "description": "Click on \"Settings\""
+        "description": "Click a homework item in the homework list"
       },
       {
         "type": "assertion",
-        "description": "Verify URL contains \"/dashboard/settings\""
+        "description": "Verify URL contains \"/dashboard/hw\""
       },
       {
         "type": "assertion",
-        "description": "Verify text \"Settings\" is visible"
+        "description": "Verify text \"Performance\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Submissions\" is visible"
       }
     ]
   },
   {
     "id": "TC008",
-    "title": "Invalid password shows error and stays on login",
-    "description": "Verifies that login fails with incorrect credentials and the user remains on /login with a visible error message.",
-    "category": "Protected Routes & Session Persistence",
-    "priority": "High",
+    "title": "Homework details page shows performance metrics section",
+    "description": "Verifies the homework management view displays a performance metrics section for the selected homework.",
+    "category": "Teacher Dashboard & Homework Management",
+    "priority": "Medium",
     "steps": [
       {
         "type": "action",
@@ -243,72 +471,39 @@
       },
       {
         "type": "action",
-        "description": "Type \"fake.user@example.com\" into the email/username field"
+        "description": "Type \"{{LOGIN_USER}}\" into the email field"
       },
       {
         "type": "action",
-        "description": "Type \"wrong-password\" into the password field"
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
       },
       {
         "type": "action",
-        "description": "Click on the \"Login\" button"
+        "description": "Click the \"Login\" button"
+      },
+      {
+        "type": "action",
+        "description": "Click a homework item in the homework list"
       },
       {
         "type": "assertion",
-        "description": "Verify URL contains \"/login\""
+        "description": "Verify URL contains \"/dashboard/hw\""
       },
       {
         "type": "assertion",
-        "description": "Verify text \"Invalid\" is visible"
+        "description": "Verify text \"Performance\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Average\" is visible"
       }
     ]
   },
   {
     "id": "TC009",
-    "title": "Session persists when navigating from dashboard to homework list",
-    "description": "Verifies that after logging in, navigating to another protected route remains authenticated and does not redirect to login.",
-    "category": "Protected Routes & Session Persistence",
-    "priority": "Medium",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /login"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click on the \"Login\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/dashboard\""
-      },
-      {
-        "type": "action",
-        "description": "Click on \"Homeworks\""
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/dashboard/hw\""
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Homeworks\" is visible"
-      }
-    ]
-  },
-  {
-    "id": "TC010",
-    "title": "Dashboard overview renders for authenticated teacher",
-    "description": "Verifies an authenticated user can load the teacher dashboard overview page successfully.",
-    "category": "Teacher Dashboard & Homework List",
+    "title": "View submission logs from a selected homework",
+    "description": "Verifies a teacher can open the submission logs for a homework and see a list of student submissions with scores.",
+    "category": "Teacher Dashboard & Homework Management",
     "priority": "High",
     "steps": [
       {
@@ -325,630 +520,19 @@
       },
       {
         "type": "action",
-        "description": "Click the \"Log in\" button"
+        "description": "Click the \"Login\" button"
+      },
+      {
+        "type": "action",
+        "description": "Click a homework item in the homework list"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Submission logs\" button or link"
       },
       {
         "type": "assertion",
-        "description": "Verify URL contains \"/dashboard\""
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Dashboard\" is visible"
-      }
-    ]
-  },
-  {
-    "id": "TC011",
-    "title": "Navigate from dashboard to homework list using in-app navigation",
-    "description": "Verifies the teacher can move from the dashboard overview to the homework list via visible navigation controls.",
-    "category": "Teacher Dashboard & Homework List",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /login"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Log in\" button"
-      },
-      {
-        "type": "action",
-        "description": "Click on \"Homeworks\" in the dashboard navigation"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/dashboard/hw\""
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Homeworks\" is visible"
-      }
-    ]
-  },
-  {
-    "id": "TC012",
-    "title": "Homework list page shows empty state when no homeworks exist",
-    "description": "Verifies the homework list page communicates an empty state and provides a clear call-to-action to create homework.",
-    "category": "Teacher Dashboard & Homework List",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /login"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Log in\" button"
-      },
-      {
-        "type": "action",
-        "description": "Click on \"Homeworks\" in the dashboard navigation"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/dashboard/hw\""
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"No homeworks\" is visible"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify element \"Create homework\" is visible"
-      }
-    ]
-  },
-  {
-    "id": "TC013",
-    "title": "Homework list page shows homework cards when homeworks exist",
-    "description": "Verifies the homework list page renders homework cards instead of the empty state for accounts with existing homeworks.",
-    "category": "Teacher Dashboard & Homework List",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /login"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Log in\" button"
-      },
-      {
-        "type": "action",
-        "description": "Click on \"Homeworks\" in the dashboard navigation"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/dashboard/hw\""
-      },
-      {
-        "type": "assertion",
-        "description": "Verify element \"Homework card\" is visible"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"No homeworks\" is not visible"
-      }
-    ]
-  },
-  {
-    "id": "TC014",
-    "title": "Empty state CTA navigates to create homework page",
-    "description": "Verifies the empty state call-to-action on the homework list takes the user to the create homework page.",
-    "category": "Teacher Dashboard & Homework List",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /login"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Log in\" button"
-      },
-      {
-        "type": "action",
-        "description": "Click on \"Homeworks\" in the dashboard navigation"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Create homework\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/dashboard/create\""
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Create\" is visible"
-      }
-    ]
-  },
-  {
-    "id": "TC015",
-    "title": "Create page navigation is accessible from homework list (non-empty list)",
-    "description": "Verifies that when homeworks exist, the homework list still provides a visible path to create a new homework.",
-    "category": "Teacher Dashboard & Homework List",
-    "priority": "Medium",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /login"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Log in\" button"
-      },
-      {
-        "type": "action",
-        "description": "Click on \"Homeworks\" in the dashboard navigation"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Create\" or \"New homework\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/dashboard/create\""
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Create\" is visible"
-      }
-    ]
-  },
-  {
-    "id": "TC016",
-    "title": "Create and save a new homework with one multiple-choice question, then verify it appears in homework list",
-    "description": "Verifies a teacher can create a homework with required multiple-choice fields, save/publish it, and see it listed on /dashboard/hw.",
-    "category": "Create Homework",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /login"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click on the \"Login\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/dashboard\""
-      },
-      {
-        "type": "action",
-        "description": "Click on \"Create\" or \"Create Homework\" in the dashboard navigation"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/dashboard/create\""
-      },
-      {
-        "type": "action",
-        "description": "Type \"Homework E2E - MCQ 1\" into the title field"
-      }
-    ]
-  },
-  {
-    "id": "TC017",
-    "title": "Add a multiple-choice question with choices and a correct answer, then Save",
-    "description": "Verifies the create page supports adding an MCQ, entering question/choices, selecting a correct answer, and saving without validation errors.",
-    "category": "Create Homework",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /login"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click on the \"Login\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/dashboard\""
-      },
-      {
-        "type": "action",
-        "description": "Click on \"Create\" or \"Create Homework\" in the dashboard navigation"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/dashboard/create\""
-      },
-      {
-        "type": "action",
-        "description": "Click on the \"Add Question\" or \"Add Multiple-Choice Question\" button"
-      }
-    ]
-  },
-  {
-    "id": "TC018",
-    "title": "Complete MCQ fields and Save/Publish, then navigate to Homework list",
-    "description": "Verifies that after saving/publishing from the create page, the user can reach /dashboard/hw and see the newly created homework card.",
-    "category": "Create Homework",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /login"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click on the \"Login\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/dashboard\""
-      },
-      {
-        "type": "action",
-        "description": "Click on \"Create\" or \"Create Homework\" in the dashboard navigation"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/dashboard/create\""
-      },
-      {
-        "type": "action",
-        "description": "Click on the \"Save\" or \"Publish\" button"
-      }
-    ]
-  },
-  {
-    "id": "TC019",
-    "title": "Validation: attempt to Save with empty title shows title error",
-    "description": "Verifies the title field is required and a visible validation message appears when saving without a title.",
-    "category": "Create Homework",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /login"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click on the \"Login\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/dashboard\""
-      },
-      {
-        "type": "action",
-        "description": "Click on \"Create\" or \"Create Homework\" in the dashboard navigation"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/dashboard/create\""
-      },
-      {
-        "type": "action",
-        "description": "Click on the \"Save\" button"
-      }
-    ]
-  },
-  {
-    "id": "TC020",
-    "title": "Validation: empty title shows an explicit required message near the title field",
-    "description": "Verifies that after trying to save without a title, a visible error message indicates the title is required.",
-    "category": "Create Homework",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /login"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click on the \"Login\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/dashboard\""
-      },
-      {
-        "type": "action",
-        "description": "Click on \"Create\" or \"Create Homework\" in the dashboard navigation"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/dashboard/create\""
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Title is required\" is visible"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify element \"title field error message\" is visible"
-      }
-    ]
-  },
-  {
-    "id": "TC021",
-    "title": "Validation: add a question but do not mark a correct answer, then Save shows correct-answer error",
-    "description": "Verifies the MCQ requires selecting a correct answer and shows a visible validation error when missing.",
-    "category": "Create Homework",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /login"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click on the \"Login\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/dashboard\""
-      },
-      {
-        "type": "action",
-        "description": "Click on \"Create\" or \"Create Homework\" in the dashboard navigation"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/dashboard/create\""
-      },
-      {
-        "type": "action",
-        "description": "Click on the \"Add Question\" or \"Add Multiple-Choice Question\" button"
-      }
-    ]
-  },
-  {
-    "id": "TC022",
-    "title": "Validation: correct-answer required message is visible after Save attempt",
-    "description": "Verifies that saving an MCQ without a marked correct answer surfaces a clear visible error message.",
-    "category": "Create Homework",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /login"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click on the \"Login\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/dashboard\""
-      },
-      {
-        "type": "action",
-        "description": "Click on \"Create\" or \"Create Homework\" in the dashboard navigation"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/dashboard/create\""
-      },
-      {
-        "type": "action",
-        "description": "Click on the \"Save\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Correct answer is required\" is visible"
-      }
-    ]
-  },
-  {
-    "id": "TC023",
-    "title": "View results list for a homework and see student name and score",
-    "description": "Verifies a teacher can open a homework’s results and see a visible list of submissions with student name and score.",
-    "category": "Teacher Results & Analytics",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /login"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Log in\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/dashboard\""
-      },
-      {
-        "type": "action",
-        "description": "Click on a homework card on the dashboard"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"View Results\" button on the homework card"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Results\" is visible"
-      }
-    ]
-  },
-  {
-    "id": "TC024",
-    "title": "Results page shows a list of student submissions",
-    "description": "Verifies the results view renders a visible submissions list for the selected homework.",
-    "category": "Teacher Results & Analytics",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /login"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Log in\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/dashboard\""
-      },
-      {
-        "type": "action",
-        "description": "Click on a homework card on the dashboard"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"View Results\" button on the homework card"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Student\" is visible"
-      }
-    ]
-  },
-  {
-    "id": "TC025",
-    "title": "Results page shows student name and score columns/fields",
-    "description": "Verifies that at least one submission entry displays both a student name and a score value on the results page.",
-    "category": "Teacher Results & Analytics",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /login"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Log in\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/dashboard\""
-      },
-      {
-        "type": "action",
-        "description": "Click on a homework card on the dashboard"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"View Results\" button on the homework card"
+        "description": "Verify text \"Submissions\" is visible"
       },
       {
         "type": "assertion",
@@ -957,10 +541,10 @@
     ]
   },
   {
-    "id": "TC026",
-    "title": "Results ranking is displayed (sorted by score)",
-    "description": "Verifies the results page visibly communicates a ranking/order by score (e.g., a Rank indicator or ordered list).",
-    "category": "Teacher Results & Analytics",
+    "id": "TC010",
+    "title": "Submission logs show at least one submission row with student identifier",
+    "description": "Verifies the submission logs view renders individual submission entries that include a student name/identifier and a score.",
+    "category": "Teacher Dashboard & Homework Management",
     "priority": "Medium",
     "steps": [
       {
@@ -969,7 +553,7 @@
       },
       {
         "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
+        "description": "Type \"{{LOGIN_USER}}\" into the email field"
       },
       {
         "type": "action",
@@ -977,31 +561,31 @@
       },
       {
         "type": "action",
-        "description": "Click the \"Log in\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/dashboard\""
+        "description": "Click the \"Login\" button"
       },
       {
         "type": "action",
-        "description": "Click on a homework card on the dashboard"
+        "description": "Click a homework item in the homework list"
       },
       {
         "type": "action",
-        "description": "Click the \"View Results\" button on the homework card"
+        "description": "Click the \"Submission logs\" button or link"
       },
       {
         "type": "assertion",
-        "description": "Verify text \"Rank\" is visible"
+        "description": "Verify element \"Submission list\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Score\" is visible"
       }
     ]
   },
   {
-    "id": "TC027",
-    "title": "Solved vs unsolved statistics are visible on results page",
-    "description": "Verifies the results view includes visible solved and unsolved counts/statistics for the homework.",
-    "category": "Teacher Results & Analytics",
+    "id": "TC011",
+    "title": "Login validation: wrong password shows an error and stays on login page",
+    "description": "Verifies invalid credentials are rejected with a visible error message and the user is not taken to the dashboard.",
+    "category": "Teacher Dashboard & Homework Management",
     "priority": "High",
     "steps": [
       {
@@ -1010,349 +594,35 @@
       },
       {
         "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
+        "description": "Type \"fake.teacher@example.com\" into the email field"
       },
       {
         "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+        "description": "Type \"wrong-password\" into the password field"
       },
       {
         "type": "action",
-        "description": "Click the \"Log in\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/dashboard\""
-      },
-      {
-        "type": "action",
-        "description": "Click on a homework card on the dashboard"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"View Results\" button on the homework card"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Solved\" is visible"
-      }
-    ]
-  },
-  {
-    "id": "TC028",
-    "title": "Unsolved count is visible alongside solved count",
-    "description": "Verifies the results view includes an unsolved indicator/count as a separate visible metric.",
-    "category": "Teacher Results & Analytics",
-    "priority": "Medium",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /login"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Log in\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/dashboard\""
-      },
-      {
-        "type": "action",
-        "description": "Click on a homework card on the dashboard"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"View Results\" button on the homework card"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Unsolved\" is visible"
-      }
-    ]
-  },
-  {
-    "id": "TC029",
-    "title": "Update personal information and see success confirmation",
-    "description": "Verifies a teacher can update profile information from Settings and sees a visible success confirmation.",
-    "category": "Account Management & Settings",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /login"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click on the \"Log in\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/dashboard\""
-      },
-      {
-        "type": "action",
-        "description": "Click on \"Settings\" from the dashboard navigation/menu"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/dashboard/settings\""
-      },
-      {
-        "type": "action",
-        "description": "Fill \"Updated Test Name\" into the name/full name field"
-      },
-      {
-        "type": "action",
-        "description": "Click on the \"Update personal information\" or \"Save\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Success\" or \"Profile updated\" is visible"
-      }
-    ]
-  },
-  {
-    "id": "TC030",
-    "title": "Update personal information persists on page reload within Settings",
-    "description": "Verifies updated profile data remains visible after saving and reloading the Settings page.",
-    "category": "Account Management & Settings",
-    "priority": "Medium",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /login"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click on the \"Log in\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/dashboard\""
-      },
-      {
-        "type": "action",
-        "description": "Click on \"Settings\" from the dashboard navigation/menu"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/dashboard/settings\""
-      },
-      {
-        "type": "action",
-        "description": "Fill \"Persistent Name Check\" into the name/full name field"
-      },
-      {
-        "type": "action",
-        "description": "Click on the \"Update personal information\" or \"Save\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Success\" or \"Profile updated\" is visible"
-      },
-      {
-        "type": "action",
-        "description": "Navigate to /dashboard/settings"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Persistent Name Check\" is visible"
-      }
-    ]
-  },
-  {
-    "id": "TC031",
-    "title": "Toggle homework behavior settings and see save confirmation",
-    "description": "Verifies homework behavior toggles can be changed in Settings and saved successfully.",
-    "category": "Account Management & Settings",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /login"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click on the \"Log in\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/dashboard\""
-      },
-      {
-        "type": "action",
-        "description": "Click on \"Settings\" from the dashboard navigation/menu"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/dashboard/settings\""
-      },
-      {
-        "type": "action",
-        "description": "Click on a homework behavior toggle (for example: auto-publish, allow retries, show answers, or similar) to change its state"
-      },
-      {
-        "type": "action",
-        "description": "Click on the \"Save\" or \"Submit changes\" button for behavior settings"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Success\" or \"Settings saved\" is visible"
-      }
-    ]
-  },
-  {
-    "id": "TC032",
-    "title": "Homework behavior setting reflected when navigating to Create Homework",
-    "description": "Verifies a saved behavior setting is reflected in the Create Homework page UI defaults.",
-    "category": "Account Management & Settings",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /login"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click on the \"Log in\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/dashboard\""
-      },
-      {
-        "type": "action",
-        "description": "Click on \"Settings\" from the dashboard navigation/menu"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/dashboard/settings\""
-      },
-      {
-        "type": "action",
-        "description": "Click on a homework behavior toggle to change its state (choose one with a clear on/off label)"
-      },
-      {
-        "type": "action",
-        "description": "Click on the \"Save\" or \"Submit changes\" button for behavior settings"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Success\" or \"Settings saved\" is visible"
-      },
-      {
-        "type": "action",
-        "description": "Click on \"Create\" or \"Create Homework\" from the dashboard navigation/menu"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/dashboard/create\""
-      },
-      {
-        "type": "assertion",
-        "description": "Verify the corresponding behavior option appears in the expected state (for example: enabled/disabled label or checked/unchecked indicator)"
-      }
-    ]
-  },
-  {
-    "id": "TC033",
-    "title": "Logout with confirmation redirects to Login",
-    "description": "Verifies logout requires confirmation and returns the user to the login page after confirming.",
-    "category": "Account Management & Settings",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /login"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click on the \"Log in\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/dashboard\""
-      },
-      {
-        "type": "action",
-        "description": "Click on \"Settings\" from the dashboard navigation/menu"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/dashboard/settings\""
-      },
-      {
-        "type": "action",
-        "description": "Click on the \"Logout\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Are you sure\" or \"Confirm logout\" is visible"
-      },
-      {
-        "type": "action",
-        "description": "Click on the \"Confirm\" or \"Yes, log out\" button"
+        "description": "Click the \"Login\" button"
       },
       {
         "type": "assertion",
         "description": "Verify URL contains \"/login\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Invalid\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Login\" is visible"
       }
     ]
   },
   {
-    "id": "TC034",
-    "title": "Logout confirmation can be canceled and user stays in Settings",
-    "description": "Verifies canceling the logout confirmation keeps the user in Settings and does not log them out.",
-    "category": "Account Management & Settings",
+    "id": "TC012",
+    "title": "Login validation: missing password prevents login",
+    "description": "Verifies the login form blocks submission (or shows a validation message) when the password field is empty.",
+    "category": "Teacher Dashboard & Homework Management",
     "priority": "Medium",
     "steps": [
       {
@@ -1361,56 +631,32 @@
       },
       {
         "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
+        "description": "Type \"fake.teacher@example.com\" into the email field"
       },
       {
         "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click on the \"Log in\" button"
+        "description": "Click the \"Login\" button"
       },
       {
         "type": "assertion",
-        "description": "Verify URL contains \"/dashboard\""
-      },
-      {
-        "type": "action",
-        "description": "Click on \"Settings\" from the dashboard navigation/menu"
+        "description": "Verify URL contains \"/login\""
       },
       {
         "type": "assertion",
-        "description": "Verify URL contains \"/dashboard/settings\""
-      },
-      {
-        "type": "action",
-        "description": "Click on the \"Logout\" button"
+        "description": "Verify text \"Password\" is visible"
       },
       {
         "type": "assertion",
-        "description": "Verify text \"Confirm logout\" or \"Are you sure\" is visible"
-      },
-      {
-        "type": "action",
-        "description": "Click on the \"Cancel\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/dashboard/settings\""
-      },
-      {
-        "type": "assertion",
-        "description": "Verify element \"Logout\" is visible"
+        "description": "Verify text \"required\" is visible"
       }
     ]
   },
   {
-    "id": "TC035",
-    "title": "Delete account flow can be canceled and account remains active",
-    "description": "Verifies canceling the delete account confirmation leaves the account active and user remains in Settings.",
-    "category": "Account Management & Settings",
-    "priority": "High",
+    "id": "TC013",
+    "title": "Dashboard page remains usable after reload navigation to /dashboard when logged in",
+    "description": "Verifies that after logging in, directly loading the dashboard route shows dashboard content (session persists for the browser run).",
+    "category": "Teacher Dashboard & Homework Management",
+    "priority": "Low",
     "steps": [
       {
         "type": "action",
@@ -1418,7 +664,7 @@
       },
       {
         "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
+        "description": "Type \"{{LOGIN_USER}}\" into the email field"
       },
       {
         "type": "action",
@@ -1426,346 +672,27 @@
       },
       {
         "type": "action",
-        "description": "Click on the \"Log in\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/dashboard\""
+        "description": "Click the \"Login\" button"
       },
       {
         "type": "action",
-        "description": "Click on \"Settings\" from the dashboard navigation/menu"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/dashboard/settings\""
-      },
-      {
-        "type": "action",
-        "description": "Click on the \"Delete account\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"This action cannot be undone\" or \"Delete your account\" is visible"
-      },
-      {
-        "type": "action",
-        "description": "Click on the \"Cancel\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/dashboard/settings\""
-      },
-      {
-        "type": "assertion",
-        "description": "Verify element \"Delete account\" is visible"
-      }
-    ]
-  },
-  {
-    "id": "TC036",
-    "title": "Confirm delete account redirects away from authenticated area",
-    "description": "Verifies confirming account deletion redirects the user to a public route after deletion completes.",
-    "category": "Account Management & Settings",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /login"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click on the \"Log in\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/dashboard\""
-      },
-      {
-        "type": "action",
-        "description": "Click on \"Settings\" from the dashboard navigation/menu"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/dashboard/settings\""
-      },
-      {
-        "type": "action",
-        "description": "Click on the \"Delete account\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"This action cannot be undone\" or \"Delete your account\" is visible"
-      },
-      {
-        "type": "action",
-        "description": "Click on the \"Confirm\" or \"Yes, delete\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/signup\" or verify URL contains \"/\""
-      }
-    ]
-  },
-  {
-    "id": "TC037",
-    "title": "Cross-account access isolation: Teacher B cannot see Teacher A homework in list",
-    "description": "Ensures a second teacher account cannot access or view another teacher’s homework from the homework list area.",
-    "category": "Authorization, Security & Edge Cases",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /signup"
-      },
-      {
-        "type": "action",
-        "description": "Fill \"Email\" with \"teacherA+e2e@example.com\""
-      },
-      {
-        "type": "action",
-        "description": "Fill \"Password\" with \"ValidPass123!\""
-      },
-      {
-        "type": "action",
-        "description": "Click on \"Create account\""
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/dashboard\""
-      },
-      {
-        "type": "action",
-        "description": "Click on \"Homeworks\" (or \"HW\") in the dashboard navigation"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/dashboard/hw\""
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"teacherA+e2e@example.com\" is visible"
-      }
-    ]
-  },
-  {
-    "id": "TC038",
-    "title": "Protected page access after login: teacher can reach /dashboard/hw",
-    "description": "Confirms that an authenticated user can access a protected route and see the expected page state.",
-    "category": "Authorization, Security & Edge Cases",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /login"
-      },
-      {
-        "type": "action",
-        "description": "Fill \"Email\" with \"{{LOGIN_USER}}\""
-      },
-      {
-        "type": "action",
-        "description": "Fill \"Password\" with \"{{LOGIN_PASSWORD}}\""
-      },
-      {
-        "type": "action",
-        "description": "Click on \"Login\""
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/dashboard\""
-      },
-      {
-        "type": "action",
-        "description": "Click on \"Homeworks\" (or \"HW\") in the dashboard navigation"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/dashboard/hw\""
+        "description": "Navigate to /dashboard"
       },
       {
         "type": "assertion",
         "description": "Verify text \"Homeworks\" is visible"
-      }
-    ]
-  },
-  {
-    "id": "TC039",
-    "title": "Create homework validation: prevent saving with zero questions (if UI allows)",
-    "description": "Verifies explicit validation or handling when attempting to save/publish a homework without any questions.",
-    "category": "Authorization, Security & Edge Cases",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /login"
-      },
-      {
-        "type": "action",
-        "description": "Fill \"Email\" with \"{{LOGIN_USER}}\""
-      },
-      {
-        "type": "action",
-        "description": "Fill \"Password\" with \"{{LOGIN_PASSWORD}}\""
-      },
-      {
-        "type": "action",
-        "description": "Click on \"Login\""
       },
       {
         "type": "assertion",
         "description": "Verify URL contains \"/dashboard\""
-      },
-      {
-        "type": "action",
-        "description": "Click on \"Create\" in the dashboard navigation"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/dashboard/create\""
-      },
-      {
-        "type": "action",
-        "description": "Click on \"Save\" (or \"Publish\")"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Add at least one question\" is visible"
       }
     ]
   },
   {
-    "id": "TC040",
-    "title": "Create homework validation: required fields prevent save when empty",
-    "description": "Checks that required homework fields (e.g., title) show visible validation errors when left blank.",
-    "category": "Authorization, Security & Edge Cases",
-    "priority": "Medium",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /login"
-      },
-      {
-        "type": "action",
-        "description": "Fill \"Email\" with \"{{LOGIN_USER}}\""
-      },
-      {
-        "type": "action",
-        "description": "Fill \"Password\" with \"{{LOGIN_PASSWORD}}\""
-      },
-      {
-        "type": "action",
-        "description": "Click on \"Login\""
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/dashboard\""
-      },
-      {
-        "type": "action",
-        "description": "Click on \"Create\" in the dashboard navigation"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/dashboard/create\""
-      },
-      {
-        "type": "action",
-        "description": "Click on \"Save\" (or \"Publish\")"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Title is required\" is visible"
-      }
-    ]
-  },
-  {
-    "id": "TC041",
-    "title": "Invalid login credentials show error and do not enter dashboard",
-    "description": "Ensures incorrect credentials are rejected with a visible error and no redirect to protected routes.",
-    "category": "Authorization, Security & Edge Cases",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /login"
-      },
-      {
-        "type": "action",
-        "description": "Fill \"Email\" with \"not-a-user@example.com\""
-      },
-      {
-        "type": "action",
-        "description": "Fill \"Password\" with \"WrongPassword!\""
-      },
-      {
-        "type": "action",
-        "description": "Click on \"Login\""
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Invalid email or password\" is visible"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/login\""
-      }
-    ]
-  },
-  {
-    "id": "TC042",
-    "title": "Settings page is protected and loads only after login",
-    "description": "Validates that /dashboard/settings requires authentication and renders expected settings UI for logged-in users.",
-    "category": "Authorization, Security & Edge Cases",
-    "priority": "Medium",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /login"
-      },
-      {
-        "type": "action",
-        "description": "Fill \"Email\" with \"{{LOGIN_USER}}\""
-      },
-      {
-        "type": "action",
-        "description": "Fill \"Password\" with \"{{LOGIN_PASSWORD}}\""
-      },
-      {
-        "type": "action",
-        "description": "Click on \"Login\""
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/dashboard\""
-      },
-      {
-        "type": "action",
-        "description": "Click on \"Settings\" in the dashboard navigation"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/dashboard/settings\""
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Settings\" is visible"
-      }
-    ]
-  },
-  {
-    "id": "TC043",
-    "title": "RTL and Arabic UI on landing page (/)",
-    "description": "Verifies the landing page shows Arabic UI content and presents an RTL-oriented layout.",
-    "category": "Arabic UI & Mobile Responsiveness Checks",
+    "id": "TC014",
+    "title": "Result page displays total score after a student submission",
+    "description": "Verifies the student can view an overall score on the result page after completing a submission flow that lands on the result page.",
+    "category": "Student Result Viewing",
     "priority": "High",
     "steps": [
       {
@@ -1773,254 +700,102 @@
         "description": "Navigate to /"
       },
       {
-        "type": "assertion",
-        "description": "Verify element \"Arabic (العربية)\" is visible"
+        "type": "action",
+        "description": "Click on any visible homework link that opens the student homework answering page"
       },
       {
         "type": "assertion",
-        "description": "Verify element \"تسجيل الدخول\" is visible"
+        "description": "Verify URL contains \"/hw/\""
+      },
+      {
+        "type": "action",
+        "description": "Click the primary submission button to submit the homework"
       },
       {
         "type": "assertion",
-        "description": "Verify element \"إنشاء حساب\" is visible"
+        "description": "Verify URL contains \"/result\""
       },
       {
         "type": "assertion",
-        "description": "Verify the primary navigation menu is visible"
+        "description": "Verify text \"الدرجة\" is visible"
       },
       {
         "type": "assertion",
-        "description": "Verify the hero section is visible"
+        "description": "Verify a numeric total score value is visible near the score label"
       }
     ]
   },
   {
-    "id": "TC044",
-    "title": "RTL and Arabic UI on Login page (/login)",
-    "description": "Verifies the login page renders Arabic labels and appears RTL-oriented.",
-    "category": "Arabic UI & Mobile Responsiveness Checks",
+    "id": "TC015",
+    "title": "Result page shows per-question feedback after submission",
+    "description": "Verifies the result page includes detailed feedback per question (e.g., correct/incorrect or explanation) after submission.",
+    "category": "Student Result Viewing",
     "priority": "High",
     "steps": [
       {
         "type": "action",
-        "description": "Navigate to /login"
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Click on any visible homework link that opens the student homework answering page"
       },
       {
         "type": "assertion",
-        "description": "Verify text \"تسجيل الدخول\" is visible"
+        "description": "Verify URL contains \"/hw/\""
+      },
+      {
+        "type": "action",
+        "description": "Click the primary submission button to submit the homework"
       },
       {
         "type": "assertion",
-        "description": "Verify element \"Email\" is visible"
+        "description": "Verify URL contains \"/result\""
       },
       {
         "type": "assertion",
-        "description": "Verify element \"Password\" is visible"
+        "description": "Verify text \"سؤال\" is visible"
       },
       {
         "type": "assertion",
-        "description": "Verify element \"Sign in\" is visible"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify element \"إنشاء حساب\" is visible"
+        "description": "Verify at least one visible per-question status indicator text such as \"صحيح\" or \"خطأ\" is visible"
       }
     ]
   },
   {
-    "id": "TC045",
-    "title": "RTL and Arabic UI on Signup page (/signup)",
-    "description": "Verifies the signup page renders Arabic labels and appears RTL-oriented.",
-    "category": "Arabic UI & Mobile Responsiveness Checks",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /signup"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"إنشاء حساب\" is visible"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify element \"Email\" is visible"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify element \"Password\" is visible"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify element \"Create account\" is visible"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify element \"تسجيل الدخول\" is visible"
-      }
-    ]
-  },
-  {
-    "id": "TC046",
-    "title": "RTL and Arabic UI on Teacher Dashboard (/dashboard) after login",
-    "description": "Verifies the teacher dashboard loads after login and displays Arabic UI in an RTL-oriented layout.",
-    "category": "Arabic UI & Mobile Responsiveness Checks",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /login"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click on \"Sign in\""
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/dashboard\""
-      },
-      {
-        "type": "assertion",
-        "description": "Verify element \"Dashboard\" is visible"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify element \"إنشاء واجب\" is visible"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify the sidebar menu is visible"
-      }
-    ]
-  },
-  {
-    "id": "TC047",
-    "title": "RTL and Arabic UI on Create Homework (/dashboard/create) after login",
-    "description": "Verifies the create homework page loads after login and key controls are visible in an RTL-oriented UI.",
-    "category": "Arabic UI & Mobile Responsiveness Checks",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /login"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click on \"Sign in\""
-      },
-      {
-        "type": "action",
-        "description": "Click on \"Create\" in the dashboard navigation"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/dashboard/create\""
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"إنشاء واجب\" is visible"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify the homework creation form is visible"
-      }
-    ]
-  },
-  {
-    "id": "TC048",
-    "title": "RTL and Arabic UI on Homework list (/dashboard/hw) after login",
-    "description": "Verifies the homework list page loads after login and list/table layout appears usable under RTL UI.",
-    "category": "Arabic UI & Mobile Responsiveness Checks",
+    "id": "TC016",
+    "title": "Result page displays ranking/position after submission",
+    "description": "Verifies the student can see their ranking/position information on the result page after submission.",
+    "category": "Student Result Viewing",
     "priority": "Medium",
     "steps": [
       {
         "type": "action",
-        "description": "Navigate to /login"
+        "description": "Navigate to /"
       },
       {
         "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click on \"Sign in\""
-      },
-      {
-        "type": "action",
-        "description": "Click on \"Homeworks\" in the dashboard navigation"
+        "description": "Click on any visible homework link that opens the student homework answering page"
       },
       {
         "type": "assertion",
-        "description": "Verify URL contains \"/dashboard/hw\""
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"الواجبات\" is visible"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify the homework list is visible"
-      }
-    ]
-  },
-  {
-    "id": "TC049",
-    "title": "RTL and Arabic UI on Settings (/dashboard/settings) after login",
-    "description": "Verifies the settings page loads after login and presents Arabic UI in an RTL-oriented layout.",
-    "category": "Arabic UI & Mobile Responsiveness Checks",
-    "priority": "Medium",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /login"
+        "description": "Verify URL contains \"/hw/\""
       },
       {
         "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click on \"Sign in\""
-      },
-      {
-        "type": "action",
-        "description": "Click on \"Settings\" in the dashboard navigation"
+        "description": "Click the primary submission button to submit the homework"
       },
       {
         "type": "assertion",
-        "description": "Verify URL contains \"/dashboard/settings\""
+        "description": "Verify URL contains \"/result\""
       },
       {
         "type": "assertion",
-        "description": "Verify text \"الإعدادات\" is visible"
+        "description": "Verify text \"الترتيب\" is visible"
       },
       {
         "type": "assertion",
-        "description": "Verify the account settings section is visible"
+        "description": "Verify a numeric ranking/position value is visible near the ranking label"
       }
     ]
   }

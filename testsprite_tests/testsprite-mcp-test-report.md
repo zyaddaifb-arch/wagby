@@ -1,30 +1,58 @@
-# TestSprite AI Testing Report (Zakerly - Final Verification)
-
 ## 1️⃣ Document Metadata
-- **Project Name:** Zakerly
-- **Environment:** Development (Localhost:3000)
-- **Date:** 2026-03-14
-- **Success Rate:** 73.33% (11/15 Passed)
 
-## 2️⃣ Fixed Requirements Validation Summary
+- **Project Name**: Zakerly (واجبي)
+- **Test Date**: 2026-03-18
+- **Environment**: Production Build (Localhost:3000)
+- **Framework**: Next.js, Playwright
+- **Total Test Cases**: 15
+- **Passed**: 10
+- **Failed**: 5
+- **Pass Rate**: 66.7%
 
-| Test ID | Description | Status | Status After Fix | Findings |
-|---------|-------------|--------|------------------|----------|
-| TC002 | Landing page features visible | ❌ Failed | ✅ Passed | Resolved concatenated text issue. |
-| TC006 | Login flow from landing | ❌ Failed | ✅ Passed | Restored missing header navigation. |
-| TC017 | Add MCQ and Save | ❌ Failed | ✅ Passed | Improved button selectors for stable interaction. |
-| TC019 | Empty title validation | ❌ Failed | ✅ Passed | Server-side validation now correctly blocks saving. |
+## 2️⃣ Requirement Validation Summary
 
-## 3️⃣ Remaining Issues / Risks
+### Authentication & User Management
+- **TC004: Teacher signup with email/password** - ✅ **PASSED**
+- **TC005: Teacher login with valid credentials** - ✅ **PASSED**
+- **TC006: Login shows error for wrong password** - ✅ **PASSED**
+- **TC007: Signup validation (missing email)** - ✅ **PASSED**
+- **TC008: Login validation (missing password)** - ✅ **PASSED**
 
-| Test ID | Description | Status | Reason for Failure |
-|---------|-------------|--------|--------------------|
-| TC008 | Invalid password logic | ❌ Failed | The mock logic rejects correctly, but the test cannot find the English word 'Invalid' as it is mixed with Arabic text. Security-wise, it IS fixed (wrong password no longer logs in). |
-| TC018 | Complete MCQ and Publish | ❌ Failed | Wizard interaction bottleneck: The 'Next' button was not interactable in the last step for the automated script. |
-| TC012 | Empty state logic | ❌ Failed | Test expected 0 items, but database has existing test data. Not a functional bug. |
+### Homework Creation & Validation
+- **TC001: Publish MCQ homework and verify share link** - ✅ **PASSED**
+- **TC002: T/F question requires correct answer** - ✅ **PASSED**
+- **TC009: Publish homework and generate share link** - ✅ **PASSED**
+- **TC012: Publish failure shows error and retry** - ✅ **PASSED**
+- **TC003: Save draft persistence** - ❌ **FAILED** (Inconsistent saving behavior; draft not found in list after saving).
 
-## 4️⃣ Key Takeaways
-- **Security**: Authentication bypass is RESOLVED. Wrong passwords now correctly return an error.
-- **Validation**: Homework creation is now protected by server-side checks.
-- **UX/Navigation**: Landing page links and header navigation are repaired.
-- **Automated Testing**: Success rate increased from 53% to 73%. Remaining failures are primarily related to test environment cleanup and specific assertion phrasing.
+### Student View & Access
+- **TC010: Published share link opens for students** - ❌ **FAILED** (Publish button or student link not found during flow).
+- **TC011: Draft homework access prevention** - ❌ **FAILED** (Unable to verify student-facing URL in draft state).
+- **TC013: Publish confirmation share link visibility** - ❌ **FAILED** (Confirmation dialog/link pattern not found).
+
+### Results & Reporting
+- **TC016: Empty state for zero submissions** - ✅ **PASSED**
+- **TC014: View submissions list and details** - ❌ **FAILED** (Blocked because no submissions existed to inspect).
+
+## 3️⃣ Coverage & Matching Metrics
+
+- **Core Features Covered**: Login, Signup, Homework Creation (Wizard), Homework List, Results Page.
+- **UI Interaction Coverage**: High (Playwright interactions across multiple routes).
+- **Validation Coverage**: Medium (Auth and Basic Homework creation covered).
+
+## 4️⃣ Key Gaps / Risks
+
+> [!WARNING]
+> **Draft Persistence**: TC003 failed due to inconsistent draft saving. Teachers might lose work if drafts are not reliably stored or retrieved.
+
+> [!IMPORTANT]
+> **Share Link Flow**: Multiple failures (TC010, TC013) suggest that the transitions from "Publishing" to "Sharing" are brittle or the UI elements (buttons/links) are hard to locate via automated selectors.
+
+> [!NOTE]
+> **Result Inspection**: TC014 failed naturally due to lack of data. Future tests should pre-populate submissions or run a linked student-teacher flow in a single session.
+
+---
+### Test Result Dashboard
+You can review the detailed execution and videos here:
+- **Project Results**: `testsprite_tests/tmp/test_results.json`
+- **MCP Logs**: `testsprite_tests/tmp/mcp.log`

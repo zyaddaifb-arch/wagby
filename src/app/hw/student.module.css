@@ -28,16 +28,33 @@
   flex: 1;
   display: flex;
   justify-content: center;
-  align-items: center;
-  padding: 2rem;
+  align-items: flex-start; /* Changed from center to start from top */
+  padding: 4rem 2rem; /* Increased top padding */
   z-index: 10;
 }
 
 /* General Container for Student Cards */
 .cardContainer {
   width: 100%;
-  max-width: 650px;
-  animation: fadeIn 0.5s ease-out;
+  max-width: 500px; /* Reduced for a more focused entry form */
+  margin: 0 auto;
+  animation: fadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.glassCard {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 2rem;
+  padding: 2.5rem;
+  width: 100%;
+  box-shadow: 
+    0 25px 50px -12px rgba(0, 0, 0, 0.5),
+    inset 0 1px 1px rgba(255, 255, 255, 0.1);
 }
 
 .brand {
@@ -98,24 +115,30 @@
 }
 
 .questionText {
-  font-size: 1.5rem;
-  font-weight: 800;
-  line-height: 1.6;
-  margin-bottom: 2.5rem;
+  font-size: 2rem; /* Increased from 1.5rem */
+  font-weight: 900;
+  line-height: 1.5;
+  margin-bottom: 3.5rem; /* Increased from 2.5rem */
   color: var(--foreground);
   text-align: center;
 }
 
 .optionsGrid {
-  display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); /* Use grid for wider layout */
+  gap: 1.5rem;
+}
+
+@media (max-width: 900px) {
+  .optionsGrid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .optionLabel {
   display: flex;
   align-items: center;
-  padding: 1.4rem 2rem;
+  padding: 1.25rem 1.5rem;
   border-radius: 1.25rem;
   border: 2px solid var(--input-border);
   cursor: pointer;
@@ -124,22 +147,57 @@
 }
 
 .optionLabel:hover {
-  transform: translateX(-6px) scale(1.01);
+  transform: translateY(-4px);
   border-color: var(--primary);
   background-color: rgba(37, 99, 235, 0.08);
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--shadow-lg), 0 0 20px rgba(59, 130, 246, 0.1);
 }
 
 .optionInput {
-  margin-left: 1.5rem;
-  width: 1.5rem;
-  height: 1.5rem;
+  margin-left: 1.25rem;
+  width: 1.4rem;
+  height: 1.4rem;
   accent-color: var(--primary);
+  cursor: pointer;
+}
+
+.inputWithIcon {
+  position: relative;
+  width: 100%;
+}
+
+.inputIcon {
+  position: absolute;
+  right: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted-foreground);
+  pointer-events: none;
+  transition: color 0.3s ease;
+}
+
+.inputWrapper:focus-within .inputIcon {
+  color: var(--primary);
+}
+
+.premiumInput {
+  padding-right: 3rem !important; /* Make room for icon on the right for RTL */
+  background: rgba(0, 0, 0, 0.2) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 1rem !important;
+  height: 3.5rem !important;
+  transition: all 0.3s ease !important;
+}
+
+.premiumInput:focus {
+  background: rgba(0, 0, 0, 0.3) !important;
+  border-color: var(--primary) !important;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15) !important;
 }
 
 .optionText {
   font-weight: 700;
-  font-size: 1.125rem;
+  font-size: 1.1rem;
   color: var(--foreground);
 }
 
@@ -147,8 +205,8 @@
 .optionLabel:has(input:checked) {
   border-color: var(--primary);
   background-color: rgba(37, 99, 235, 0.12);
-  box-shadow: 0 0 0 1px var(--primary), var(--shadow-glow);
-  transform: translateX(-6px);
+  box-shadow: 0 0 0 2px var(--primary), var(--shadow-glow);
+  transform: scale(1.01);
 }
 
 .quizFooter {
@@ -409,8 +467,422 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
-@media (max-width: 640px) {
-  .answerGrid {
-    grid-template-columns: 1fr;
+@keyframes slideInDown {
+  from { transform: translateY(-20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.errorBox {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(239, 68, 68, 0.05) 100%);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 1.25rem;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  text-align: center;
+  color: #ef4444;
+  font-weight: 800;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  box-shadow: 0 10px 30px rgba(239, 68, 68, 0.1);
+  animation: slideInDown 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  line-height: 1.6;
+}
+
+.errorButton {
+  background: white !important;
+  color: #ef4444 !important;
+  border: 2px solid #ef4444 !important;
+  font-weight: 900 !important;
+  border-radius: 0.75rem !important;
+  height: 3rem !important;
+  transition: all 0.2s ease !important;
+}
+
+.errorButton:hover {
+  background: #ef4444 !important;
+  color: white !important;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
+}
+
+.progressBarContainer {
+  width: 100%;
+  height: 10px;
+  background-color: rgba(0,0,0,0.05);
+  border-radius: 10px;
+  overflow: hidden;
+  margin-top: 10px;
+}
+
+.progressBarFill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--primary) 0%, #60a5fa 100%);
+  transition: width 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 0 0 10px rgba(59, 130, 246, 0.3);
+}
+
+@media (max-width: 768px) {
+  .main {
+    padding: 1rem;
+    padding-top: 1.5rem;
   }
+  
+  .brandLogo {
+    font-size: 2rem;
+  }
+  
+  .brandTitle {
+    font-size: 1.5rem;
+  }
+
+  .questionText {
+    font-size: clamp(1.25rem, 5vw, 1.75rem);
+    margin-bottom: 2rem;
+    padding: 0 0.5rem;
+  }
+
+  .optionLabel {
+    padding: 1rem;
+    border-radius: 1rem;
+  }
+
+  .optionText {
+    font-size: 1rem;
+  }
+
+  .resultCircle {
+    width: 10rem;
+    height: 10rem;
+    border-radius: 2rem;
+  }
+
+  .scoreValue {
+    font-size: 3.5rem;
+  }
+
+  .rankingPosition span {
+    font-size: 2.25rem;
+  }
+  
+  /* Wizard/Scroll refined for mobile */
+  .quizHeaderSticky {
+    margin-bottom: 1.5rem !important;
+    padding: 1rem !important;
+    border-radius: 1rem !important;
+  }
+  
+  .quizCardContent {
+    padding: 2.5rem 1.25rem !important;
+  }
+  
+  .wizardFooter {
+    margin-top: 2rem !important;
+    padding-top: 1.5rem !important;
+    gap: 1rem;
+  }
+  
+  .pagiBtn {
+    height: 3.5rem !important;
+    padding: 0 1.5rem !important;
+  }
+  
+  .submitBtn {
+    height: 3.5rem !important;
+    padding: 0 2rem !important;
+    flex: 1;
+  }
+  
+  .scrollContainer {
+    gap: 1.5rem !important;
+  }
+  
+  .scrollHeader {
+    padding: 2rem 1.25rem !important;
+  }
+  
+  .studentName {
+    font-size: 1.75rem !important;
+  }
+  
+  .scrollQuestionHeader {
+    padding: 1rem 1.5rem !important;
+  }
+  
+  .scrollCardContent {
+    padding: 2.5rem 1.25rem !important;
+  }
+  
+  .scrollFooter {
+    padding: 1rem !important;
+  }
+  
+  .scrollSubmitBtn {
+    height: 3.5rem !important;
+    font-size: 1.1rem !important;
+  }
+
+  .resultCardContent {
+    padding: 2.5rem 1.5rem !important;
+  }
+  
+  .rankingFlex {
+    flex-direction: column !important;
+    gap: 1.5rem !important;
+    text-align: center !important;
+  }
+  
+  .timeSpent {
+    text-align: center !important;
+    justify-content: center !important;
+  }
+
+  .answerGrid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* Specific component styles for SolveQuizClient */
+.container {
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+  animation: fadeIn 0.4s ease-out;
+}
+
+.quizHeaderSticky {
+  margin-bottom: 3rem;
+  position: sticky;
+  top: 1rem;
+  z-index: 50;
+  background-color: var(--glass-bg);
+  backdrop-filter: blur(12px);
+  padding: 1.5rem;
+  border-radius: 1.5rem;
+  border: 1px solid var(--border);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+}
+
+.quizCard {
+  border: none !important;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.08);
+  border-radius: 2rem !important;
+  overflow: hidden;
+}
+
+.quizCardContent {
+  padding: 3.5rem 2.5rem;
+}
+
+.wizardFooter {
+  margin-top: 4rem;
+  padding-top: 2.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px solid var(--border);
+}
+
+.pagiBtn {
+  border-radius: 1rem !important;
+  height: 3.5rem !important;
+  padding: 0 2rem !important;
+  font-weight: 800 !important;
+}
+
+.submitBtn {
+  border-radius: 1rem !important;
+  height: 3.5rem !important;
+  padding: 0 3rem !important;
+  font-weight: 900 !important;
+  box-shadow: 0 10px 20px rgba(59, 130, 246, 0.3);
+}
+
+.scrollContainer {
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 3rem;
+  padding-bottom: 10rem;
+}
+
+.scrollHeader {
+  text-align: center;
+  background-color: var(--card);
+  padding: 3rem;
+  border-radius: 2rem;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-lg);
+  position: relative;
+}
+
+.timerBadge {
+  position: absolute;
+  top: 1.5rem;
+  left: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background-color: rgba(59, 130, 246, 0.1);
+  border-radius: 12px;
+  color: var(--primary);
+  font-weight: 900;
+  font-size: 1.1rem;
+}
+
+.studentName {
+  font-size: 2.5rem;
+  font-weight: 900;
+  color: var(--primary);
+  margin-bottom: 1rem;
+}
+
+.scrollInstructions {
+  font-size: 1.2rem;
+  color: var(--muted-foreground);
+  font-weight: 700;
+}
+
+.scrollQuestionCard {
+  border-radius: 2rem !important;
+  overflow: hidden;
+  border: 1px solid var(--border) !important;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.03);
+}
+
+.scrollQuestionHeader {
+  background-color: rgba(0,0,0,0.02);
+  padding: 1.25rem 2.5rem;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.scrollQuestionNum {
+  font-weight: 900;
+  color: var(--primary);
+  font-size: 1.1rem;
+}
+
+.answeredBadge {
+  color: #10b981;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 900;
+}
+
+.scrollCardContent {
+  padding: 3rem 2.5rem;
+}
+
+.scrollQuestionImage {
+  margin-bottom: 2.5rem;
+  border-radius: 1.5rem;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+
+.scrollQuestionImage img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.scrollQuestionText {
+  font-size: 1.75rem;
+  font-weight: 900;
+  margin-bottom: 3rem;
+  line-height: 1.5;
+}
+
+.scrollFooter {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 2rem;
+  background-color: rgba(255,255,255,0.85);
+  backdrop-filter: blur(15px);
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: center;
+  z-index: 100;
+}
+
+.scrollSubmitBtn {
+  width: 100%;
+  max-width: 400px;
+  height: 4rem;
+  border-radius: 1.5rem !important;
+  font-weight: 900 !important;
+  font-size: 1.25rem !important;
+  box-shadow: 0 15px 30px rgba(59, 130, 246, 0.4);
+}
+
+/* Result Page specific styles */
+.resultContainer {
+  padding-bottom: 5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.resultCardContent {
+  padding: 4rem 3rem;
+}
+
+.rankingFlex {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.timeSpent {
+  text-align: left;
+}
+
+.timeValue {
+  font-size: 1.75rem;
+  font-weight: 900;
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.timeIcon {
+  font-size: 1.25rem;
+}
+
+.buttonWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.successNote {
+  margin-top: 2rem;
+  text-align: center;
+  color: var(--muted-foreground);
+  font-size: 0.875rem;
+}
+
+.reviewImageWrapper {
+  margin: 1rem 0;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+
+.reviewImage {
+  width: 100%;
+  max-height: 300px;
+  object-fit: contain;
 }

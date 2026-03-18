@@ -1,0 +1,75 @@
+[
+  {
+    "id": "ZAK-T001",
+    "title": "Teacher: Comprehensive Homework Creation Flow (3-Steps + Image)",
+    "description": "Verifies the full 3-step wizard for creating a homework with images, MCQs, and timing settings.",
+    "category": "Teacher Flow",
+    "priority": "High",
+    "steps": [
+      { "type": "action", "description": "Navigate to /login" },
+      { "type": "action", "description": "Type \"ziaddifb@gmail.com\" into the email field" },
+      { "type": "action", "description": "Type \"123321\" into the password field" },
+      { "type": "action", "description": "Click the \"Login\" button" },
+      { "type": "assertion", "description": "Verify URL contains \"/dashboard\"" },
+      { "type": "action", "description": "Click the button with text \"إنشاء واجب جديد\" or link to /dashboard/create" },
+      { "type": "action", "description": "Type \"اختبار لغة عربية متقدم\" into the title field (id=\"input-title\")" },
+      { "type": "action", "description": "Type \"5\" into the time limit field (label=\"الوقت المحدد\")" },
+      { "type": "action", "description": "Click the \"التالي\" button (id=\"btn-next\")" },
+      { "type": "assertion", "description": "Verify step 2 \"الأسئلة\" is active" },
+      { "type": "action", "description": "Type \"ما عاصمة مصر؟\" into the first question text (id=\"q-text-0\")" },
+      { "type": "action", "description": "Type \"القاهرة\" into the first option field" },
+      { "type": "action", "description": "Select the first option as correct (radio button near option 0)" },
+      { "type": "action", "description": "Click the \"التالي\" button (id=\"btn-next\")" },
+      { "type": "assertion", "description": "Verify step 3 \"النشر\" is active" },
+      { "type": "action", "description": "Click the \"نشر الواجب\" button (id=\"btn-publish\")" },
+      { "type": "assertion", "description": "Verify text \"Published\" or \"Share\" is visible" }
+    ]
+  },
+  {
+    "id": "ZAK-T002",
+    "title": "Teacher: Save Homework as Draft",
+    "description": "Verifies that a teacher can save a homework as a draft using the Save as Draft button.",
+    "category": "Teacher Flow",
+    "priority": "Medium",
+    "steps": [
+      { "type": "action", "description": "Navigate to /dashboard/create" },
+      { "type": "action", "description": "Type \"مسودة واجب تجريبي\" into the title field" },
+      { "type": "action", "description": "Click the \"حفظ كمسودة\" button (data-testid=\"save-draft-btn\")" },
+      { "type": "assertion", "description": "Verify redirection to /dashboard/hw" },
+      { "type": "assertion", "description": "Verify the homework appears with a \"Draft\" or \"مسودة\" label" }
+    ]
+  },
+  {
+    "id": "ZAK-S001",
+    "title": "Student: Join and Solve Homework via Public Link",
+    "description": "Verifies that an unauthenticated student can join a homework and submit answers.",
+    "category": "Student Flow",
+    "priority": "High",
+    "steps": [
+      { "type": "action", "description": "Navigate to a public homework link (e.g., /hw/SAMPLE)" },
+      { "type": "assertion", "description": "Verify homework title is visible" },
+      { "type": "action", "description": "Type \"أحمد محمد\" into the name input field (data-testid=\"student-name-input\")" },
+      { "type": "action", "description": "Click the \"ابدأ حل الواجب\" button (data-testid=\"start-quiz-btn\")" },
+      { "type": "assertion", "description": "Verify URL contains \"/solve\"" },
+      { "type": "action", "description": "Select the correct option for the question (data-testid=\"quiz-option-0\")" },
+      { "type": "action", "description": "Click the \"إنهاء وتصحيح الواجب\" or \"السؤال التالي\" button (data-testid=\"submit-quiz-btn\" or data-testid=\"next-question-btn\")" },
+      { "type": "assertion", "description": "Verify result screen shows details and score" }
+    ]
+  },
+  {
+    "id": "ZAK-D001",
+    "title": "Dashboard: Real-time Ranking and Results Update",
+    "description": "Verifies the teacher dashboard shows updated rankings and statistics.",
+    "category": "Dashboard",
+    "priority": "High",
+    "steps": [
+      { "type": "action", "description": "Navigate to /login" },
+      { "type": "action", "description": "Login as teacher" },
+      { "type": "action", "description": "Navigate to /dashboard/hw" },
+      { "type": "action", "description": "Click \"النتائج\" for a published homework" },
+      { "type": "assertion", "description": "Verify \"لوحة الشرف\" section is visible" },
+      { "type": "assertion", "description": "Verify student \"أحمد محمد\" appears in the rankings" },
+      { "type": "assertion", "description": "Verify stats like \"متوسط الدرجات\" are visible" }
+    ]
+  }
+]

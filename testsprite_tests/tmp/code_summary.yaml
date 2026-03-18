@@ -3,14 +3,14 @@ type: frontend
 tech_stack:
   - TypeScript
   - Next.js
-  - React
   - Supabase
-  - CSS Modules
+  - Lucide React
+  - Framer Motion
 routes:
   - path: /
     file: src/app/page.tsx
     auth_required: false
-    description: Landing page
+    description: Public landing page
   - path: /login
     file: src/app/login/page.tsx
     auth_required: false
@@ -18,56 +18,57 @@ routes:
   - path: /signup
     file: src/app/signup/page.tsx
     auth_required: false
-    description: User signup page
+    description: User registration page
   - path: /dashboard
     file: src/app/dashboard/page.tsx
     auth_required: true
-    description: Teacher dashboard
+    description: Teacher dashboard main view
   - path: /dashboard/create
     file: src/app/dashboard/create/page.tsx
     auth_required: true
-    description: Create homework page
+    description: Page to create new homework assignments
+  - path: /dashboard/results
+    file: src/app/dashboard/results/page.tsx
+    auth_required: true
+    description: View student performance and results
   - path: /dashboard/settings
     file: src/app/dashboard/settings/page.tsx
     auth_required: true
-    description: User settings page
+    description: User and account settings
   - path: /hw/[id]
     file: src/app/hw/[id]/page.tsx
     auth_required: false
-    description: Student homework view
+    description: Student interface for joining and taking a homework
 features:
   - name: User Authentication
-    description: Signup and Login with email/password
+    description: Sign up and login with email and password
     files:
       - src/app/login/page.tsx
       - src/app/signup/page.tsx
-      - src/middleware.ts
     entry_route: /login
     user_interactions:
-      - Enter email and password
-      - Click login/signup button
-    api_calls:
-      - method: POST
-        endpoint: /auth/v1/token
+      - Fill email and password
+      - Click Login/Signup button
     auth_required: false
-  - name: Teacher Dashboard
-    description: View group summaries and homework list
-    files:
-      - src/app/dashboard/page.tsx
-      - src/app/dashboard/HomeworkList.tsx
-    entry_route: /dashboard
-    user_interactions:
-      - Filter homeworks by grade
-      - Click on homework to view results
-    auth_required: true
-  - name: Homework Creation
-    description: Create new homework assignments
+  - name: Create Homework
+    description: Teachers create customized homework assignments
     files:
       - src/app/dashboard/create/page.tsx
     entry_route: /dashboard/create
     user_interactions:
-      - Enter homework title
-      - Add questions
-      - Save homework
+      - Click "Add Question"
+      - Select question type (MCQ, True/False, Essay)
+      - Enter question text and options
+      - "Save" or "Publish"
     auth_required: true
+  - name: Student Assignment Session
+    description: Students join a homework via ID and submit answers
+    files:
+      - src/app/hw/[id]/page.tsx
+    entry_route: /hw/123
+    user_interactions:
+      - Enter student name
+      - Answer questions (select options or type text)
+      - Submit responses
+    auth_required: false
 known_limitations: []

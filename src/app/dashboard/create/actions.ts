@@ -20,6 +20,9 @@ export type SaveHomeworkInput = {
   maxAttempts?: number
   isPublished: boolean
   totalStudents?: number
+  randomizeQuestions?: boolean
+  randomizeAnswers?: boolean
+  layout?: 'wizard' | 'scroll'
   questions: {
     id: string
     text: string
@@ -27,7 +30,7 @@ export type SaveHomeworkInput = {
     correctOption: number
     explanation?: string
     imageUrl?: string | null
-    questionType?: 'multiple_choice' | 'true_false'
+    questionType?: 'multiple_choice' | 'true_false' | 'essay'
   }[]
 }
 
@@ -52,9 +55,13 @@ export async function saveHomework(data: SaveHomeworkInput) {
   if (!user) throw new Error('User not found');
 
   // Server-side validation
-  if (!data.title || data.title.trim().length === 0) {
-    return { error: 'عنوان الواجب مطلوب' }
+  if (data.isPublished && (!data.title || data.title.trim().length === 0)) {
+    return { error: 'عنوان الواجب مطلوب للنشر' }
   }
+
+  // If draft and title is empty, use a placeholder
+  const finalTitle = data.title?.trim() || 'مسودة واجب بدون عنوان';
+
   if (!data.questions || data.questions.length === 0) {
     return { error: 'يجب إضافة سؤال واحد على الأقل' }
   }
@@ -63,7 +70,7 @@ export async function saveHomework(data: SaveHomeworkInput) {
     if (!q.text || q.text.trim().length === 0) {
       return { error: `السؤال ${i + 1} يفتقر إلى النص` }
     }
-    if (q.correctOption === -1 || q.correctOption === undefined) {
+    if (q.questionType !== 'essay' && (q.correctOption === -1 || q.correctOption === undefined)) {
       return { error: `السؤال ${i + 1}: يرجى اختيار الإجابة الصحيحة` }
     }
   }
@@ -74,22 +81,38 @@ export async function saveHomework(data: SaveHomeworkInput) {
     
     const oldCorrectAnswers = new Map<string, string>();
     
-    if (data.isPublished && !data.id) {
-      shareCode = generateShareCode()
+    if (data.isPublished) {
+      if (!data.id) {
+        shareCode = generateShareCode()
+      } else {
+        // Check if existing published homework missing share_code
+        const { data: existingHw } = await supabase
+          .from('homeworks')
+          .select('share_code')
+          .eq('id', data.id)
+          .single();
+        
+        if (!existingHw?.share_code) {
+          shareCode = generateShareCode()
+        }
+      }
     }
 
     const homeworkData = {
-       title: data.title,
+       title: finalTitle,
        grade: data.grade || null,
        description: data.description,
        time_limit: data.timeLimit,
        max_attempts: data.maxAttempts,
        is_published: data.isPublished,
        total_students: data.totalStudents || 0,
+       randomize_questions: data.randomizeQuestions || false,
+       randomize_answers: data.randomizeAnswers || false,
+       layout: data.layout || 'wizard',
        ...(data.isPublished ? { published_at: new Date().toISOString() } : {})
     };
 
-    if (data.isPublished && !data.id) {
+    if (data.isPublished && shareCode) {
        (homeworkData as any).share_code = shareCode;
     }
 
@@ -168,7 +191,7 @@ export async function saveHomework(data: SaveHomeworkInput) {
          option_b: q.options[1] || '',
          option_c: q.options[2] || '',
          option_d: q.options[3] || '',
-         correct_answer: optionMap[q.correctOption],
+         correct_answer: q.questionType === 'essay' ? 'essay' : optionMap[q.correctOption],
          explanation: q.explanation || null,
          image_url: q.imageUrl || null,
          question_type: q.questionType || 'multiple_choice',
@@ -277,4 +300,21 @@ export async function getHomeworkById(id: string) {
     ...hw,
     submissionCount: hw.submissions?.length || 0
   }
+}
+
+export async function getDefaultSettings() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) return null
+
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('settings')
+    .eq('id', user.id)
+    .single()
+
+  if (error || !data) return null
+
+  return (data.settings as any)?.homework || null
 }

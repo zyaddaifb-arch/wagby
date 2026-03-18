@@ -1,8 +1,9 @@
 "use client";
 import React from 'react';
 import Link from 'next/link';
+import { Logo } from '../ui/Logo';
+import { ThemeToggle } from '../ui/ThemeToggle';
 import styles from './MobileHeader.module.css';
-import { WebMCPBadge } from '../WebMCPBadge';
 
 interface MobileHeaderProps {
   onMenuOpen: () => void;
@@ -27,9 +28,11 @@ export function MobileHeader({ onMenuOpen }: MobileHeaderProps) {
         <MenuIcon />
       </button>
       <div className={styles.logoPlaceholder}>
-        <WebMCPBadge />
+        <Logo hideTextOnMobile={true} />
       </div>
-      <div className={styles.spacer} aria-hidden="true" />
+      <div className={styles.spacer} aria-hidden="true" style={{ display: 'flex', justifyContent: 'flex-end', paddingLeft: '1rem' }}>
+        <ThemeToggle />
+      </div>
     </header>
   );
 }

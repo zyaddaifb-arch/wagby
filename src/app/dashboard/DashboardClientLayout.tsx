@@ -1,7 +1,6 @@
 "use client";
 import React from 'react';
 import { Sidebar } from '../../components/layout/Sidebar';
-import { MobileNav } from '../../components/layout/MobileNav';
 import { MobileHeader } from '../../components/layout/MobileHeader';
 import styles from './layout.module.css';
 
@@ -17,7 +16,6 @@ export function DashboardClientLayout({ children }: { children: React.ReactNode 
           {children}
         </main>
       </div>
-      <MobileNav />
     </div>
   );
 }

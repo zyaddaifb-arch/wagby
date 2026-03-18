@@ -81,9 +81,11 @@ export default async function DashboardPage() {
           <h1 className={styles.pageTitle}>لوحة التحكم</h1>
           <p className={styles.pageSubtitle}>أهلاً بك يا أستاذ {profile?.full_name || 'المجتهد'}! 👋</p>
         </div>
-        <Link href="/dashboard/create">
-          <Button variant="primary" size="lg">+ إنشاء واجب جديد</Button>
-        </Link>
+        <div className={styles.headerActions}>
+          <Link href="/dashboard/create">
+            <Button variant="primary" size="lg">+ إنشاء واجب جديد</Button>
+          </Link>
+        </div>
       </div>
 
       {/* Stats Cards Row */}

@@ -33,7 +33,6 @@ export default async function StudentResultPage({
   const scoreColor = getScoreColor(percentage);
   const statusLabel = getScoreStatus(percentage);
 
-  // Parse answers for review
   const reviews = (result.answers as any[]).map(ans => {
     const q = ans.questions;
     if (!q) {
@@ -47,13 +46,34 @@ export default async function StudentResultPage({
     }
     const options = [q.option_a, q.option_b, q.option_c, q.option_d];
     const optionMap: Record<string, number> = { 'a': 0, 'b': 1, 'c': 2, 'd': 3 };
-    const correctIdx = optionMap[q.correct_answer];
-    const studentIdx = optionMap[ans.selected_option];
+    
+    let studentAnswer = 'بدون إجابة';
+    let correctAnswer = 'غير متوفر';
+    let studentImageUrl = null;
+    
+    if (q.question_type === 'essay') {
+      try {
+        const parsed = JSON.parse(ans.selected_option || '{}');
+        studentAnswer = parsed.text || (parsed.imageUrl ? 'إجابة مرفقة كصورة' : 'بدون إجابة');
+        studentImageUrl = parsed.imageUrl || null;
+        correctAnswer = 'يتم التقييم من قبل المعلم';
+      } catch (e) {
+        studentAnswer = ans.selected_option || 'بدون إجابة';
+        correctAnswer = 'يتم التقييم من قبل المعلم';
+      }
+    } else {
+      const correctIdx = optionMap[q.correct_answer];
+      const studentIdx = optionMap[ans.selected_option];
+      studentAnswer = options[studentIdx] || 'بدون إجابة';
+      correctAnswer = options[correctIdx] || 'غير متوفر';
+    }
 
     return {
       questionText: q.question_text,
-      studentAnswer: options[studentIdx] || 'بدون إجابة',
-      correctAnswer: options[correctIdx],
+      questionType: q.question_type,
+      studentAnswer,
+      studentImageUrl,
+      correctAnswer,
       isCorrect: ans.is_correct,
       explanation: q.explanation,
       imageUrl: q.image_url
@@ -61,9 +81,9 @@ export default async function StudentResultPage({
   });
 
   return (
-    <div className={styles.cardContainer} style={{ paddingBottom: '5rem' }}>
+    <div className={styles.resultContainer}>
       <Card>
-        <CardContent style={{ padding: '3rem 2rem' }}>
+        <CardContent className={styles.resultCardContent}>
           <div className={styles.resultCircle} style={{ borderColor: scoreColor, background: `${scoreColor}10` }}>
             <span className={styles.scoreValue} style={{ color: scoreColor }}>{result.score}</span>
             <span className={styles.scoreTotal}>من {result.total_questions}</span>
@@ -77,14 +97,28 @@ export default async function StudentResultPage({
           </p>
           
           <div className={styles.rankingBox}>
-            <div className={styles.rankingLabel}>ترتيبك الآن</div>
-            <div className={styles.rankingPosition}>
-              <span>{result.rank}</span>
-              <small> من {result.totalStudents} {result.totalStudents > 10 ? 'طالباً' : 'طلاب'}</small>
+            <div className={styles.rankingFlex}>
+              <div>
+                <div className={styles.rankingLabel}>ترتيبك الآن</div>
+                <div className={styles.rankingPosition}>
+                  <span>{result.rank}</span>
+                  <small> من {result.totalStudents} {result.totalStudents > 10 ? 'طالباً' : 'طلاب'}</small>
+                </div>
+              </div>
+              
+              {result.duration > 0 && (
+                <div className={styles.timeSpent}>
+                  <div className={styles.rankingLabel}>الوقت المستغرق</div>
+                  <div className={styles.timeValue}>
+                    <span className={styles.timeIcon}>⏱️</span>
+                    <span>{Math.floor(result.duration / 60)}:{(result.duration % 60).toString().padStart(2, '0')}</span>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
           
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1.5rem' }}>
+          <div className={styles.buttonWrapper}>
             <Link href={`/hw/${resolvedParams.id}`} style={{ width: '100%' }}>
               <Button size="lg" fullWidth variant="outline" style={{ fontWeight: '800' }}>
                 🏠 العودة للرئيسية
@@ -92,9 +126,13 @@ export default async function StudentResultPage({
             </Link>
           </div>
           
-          <div style={{ marginTop: '2rem', textAlign: 'center' }}>
-            <p style={{ color: 'var(--muted-foreground)', fontSize: '0.875rem' }}>
-              تم تسليم إجاباتك بنجاح. يمكنك مراجعة إجاباتك بالأسفل.
+          <div className={styles.successNote}>
+            <p>
+              {reviews.some(r => r.questionType === 'essay' && (r.isCorrect === null || r.isCorrect === undefined)) ? (
+                <span style={{ color: '#f59e0b', fontWeight: 800 }}>⚠️ بانتظار تصحيح المعلم للأسئلة المقالية للدرجة النهائية.</span>
+              ) : (
+                'تم تسليم إجاباتك بنجاح. يمكنك مراجعة إجاباتك بالأسفل.'
+              )}
             </p>
           </div>
         </CardContent>
@@ -108,21 +146,32 @@ export default async function StudentResultPage({
             <div className={styles.reviewQuestionText}>{idx + 1}. {rev.questionText}</div>
             
             {rev.imageUrl && (
-              <div style={{ margin: '1rem 0', borderRadius: '0.5rem', overflow: 'hidden', border: '1px solid var(--border)' }}>
-                <img src={rev.imageUrl} alt="صورة السؤال" style={{ width: '100%', maxHeight: '300px', objectFit: 'contain' }} />
+              <div className={styles.reviewImageWrapper}>
+                <img src={rev.imageUrl} alt="صورة السؤال" className={styles.reviewImage} />
               </div>
             )}
 
-            <div className={`${styles.statusIndicator} ${rev.isCorrect ? styles.correct : styles.incorrect}`}>
-              {rev.isCorrect ? '✅ إجابة صحيحة' : '❌ إجابة خاطئة'}
-            </div>
+            {rev.questionType !== 'essay' || (rev.isCorrect !== null && rev.isCorrect !== undefined) ? (
+              <div className={`${styles.statusIndicator} ${rev.isCorrect ? styles.correct : styles.incorrect}`}>
+                {rev.isCorrect ? '✅ إجابة صحيحة' : '❌ إجابة خاطئة'}
+              </div>
+            ) : (
+              <div className={styles.statusIndicator} style={{ backgroundColor: 'rgba(245, 158, 11, 0.1)', color: '#f59e0b', fontWeight: 800 }}>
+                📝 بانتظار تصحيح المعلم
+              </div>
+            )}
 
             <div className={styles.answerGrid}>
               <div className={styles.answerBox}>
                 <span className={styles.answerLabel}>إجابتك</span>
                 <span className={styles.answerValue}>{rev.studentAnswer}</span>
+                {rev.studentImageUrl && (
+                  <div style={{ marginTop: '0.5rem' }}>
+                    <img src={rev.studentImageUrl} alt="صورة إجابة الطالب" style={{ maxWidth: '100%', borderRadius: '0.5rem', border: '1px solid var(--border)' }} />
+                  </div>
+                )}
               </div>
-              {!rev.isCorrect && (
+              {rev.questionType !== 'essay' && !rev.isCorrect && (
                 <div className={styles.answerBox} style={{ borderColor: 'var(--success)' }}>
                   <span className={styles.answerLabel}>الإجابة الصحيحة</span>
                   <span className={styles.answerValue} style={{ color: 'var(--success)' }}>{rev.correctAnswer}</span>

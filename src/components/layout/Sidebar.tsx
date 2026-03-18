@@ -2,7 +2,10 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { type RealtimeChannel } from '@supabase/supabase-js';
 import { LogoutButton } from '@/app/dashboard/LogoutButton';
+import { Logo } from '../ui/Logo';
+import { ThemeToggle } from '../ui/ThemeToggle';
 import styles from './Sidebar.module.css';
 
 // Simple SVG Icons
@@ -48,7 +51,7 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
   }, [isOpen]);
 
   React.useEffect(() => {
-    let channel: any;
+    let channel: RealtimeChannel;
 
     const fetchProfile = async () => {
       const { createClient } = await import('@/utils/supabase/client');
@@ -113,6 +116,7 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
 
       <aside className={`${styles.sidebar} ${isOpen ? styles.sidebarOpen : ''}`}>
         <div className={styles.logo}>
+          <Logo />
           {/* Close button inside sidebar on mobile */}
           <button
             className={styles.closeBtn}
@@ -154,7 +158,12 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
             </div>
           </Link>
           <div className={styles.logoutWrapper}>
-            <LogoutButton />
+            <div className={styles.themeToggleWrapper}>
+              <ThemeToggle />
+            </div>
+            <div style={{ flex: 1 }}>
+              <LogoutButton />
+            </div>
           </div>
         </div>
       </aside>

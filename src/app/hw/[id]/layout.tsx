@@ -19,7 +19,7 @@ export default function StudentLayout({
         opacity: 0.5,
         zIndex: 10
       }}>
-        بواسطة ذاكرلي | Zakerly
+        بواسطة واجبي
       </footer>
     </div>
   );
