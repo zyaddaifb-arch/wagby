@@ -1,15 +1,26 @@
 "use client";
 
 // Web Audio API utility for programmatic sound effects (No external files needed)
+
+// Singleton AudioContext to prevent exhaustion on mobile
+let audioCtx: AudioContext | null = null;
+
 export const playSound = (type: 'success' | 'click' | 'pop' | 'error') => {
   if (typeof window === 'undefined') return;
 
   try {
-    const AudioContext = window.AudioContext || (window as unknown as Record<string, unknown>).webkitAudioContext;
-    if (!AudioContext) return;
+    if (!audioCtx) {
+      const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+      if (!AudioContextClass) return;
+      audioCtx = new AudioContextClass();
+    }
+
+    // Resume the context if it's suspended (required by mobile browsers)
+    if (audioCtx.state === 'suspended') {
+      audioCtx.resume();
+    }
     
-    // Create context on the fly to avoid early initialization issues in browsers
-    const ctx = new AudioContext();
+    const ctx = audioCtx;
     const osc = ctx.createOscillator();
     const gainNode = ctx.createGain();
 
