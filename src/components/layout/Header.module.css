@@ -33,9 +33,36 @@
   gap: 1rem;
 }
 
+.loginLink {
+  margin-right: 1rem;
+}
+
+.themeToggleContainer {
+  margin-right: 0.5rem;
+}
+
 @media (max-width: 768px) {
-  .header {
-    display: none !important;
+  .container {
+    padding: 0 1rem;
+    gap: 0.5rem;
+  }
+  .nav {
+    gap: 0.25rem;
+  }
+  .loginLink {
+    margin-right: 0.25rem;
+  }
+  .themeToggleContainer {
+    margin-right: 0.25rem;
   }
 }
 
+@media (max-width: 480px) {
+  .nav > a:first-child {
+    display: none; /* Hide 'تسجيل الدخول' but keep main CTA */
+  }
+  .nav button {
+    padding: 0 0.5rem;
+    font-size: 0.8rem;
+  }
+}

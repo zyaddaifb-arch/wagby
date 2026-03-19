@@ -13,14 +13,14 @@ export function Header() {
         <div className={styles.logo}>
           <Logo />
         </div>
-        <nav className={styles.nav} style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <Link href="/login" style={{ marginRight: '1rem' }}>
+        <nav className={styles.nav}>
+          <Link href="/login" className={styles.loginLink}>
             <Button variant="outline" size="sm" data-testid="header-login-button">تسجيل الدخول</Button>
           </Link>
           <Link href="/signup">
             <Button variant="primary" size="sm" data-testid="header-signup-button">ابدأ كمدرس</Button>
           </Link>
-          <div style={{ marginRight: '0.5rem' }}>
+          <div className={styles.themeToggleContainer}>
             <ThemeToggle />
           </div>
         </nav>
