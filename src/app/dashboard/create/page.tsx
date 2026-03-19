@@ -20,6 +20,7 @@ interface Question {
   explanation: string;
   type: 'multiple_choice' | 'true_false' | 'essay';
   imageUrl: string | null;
+  points: number;
 }
 
 function CreateForm() {
@@ -45,6 +46,7 @@ function CreateForm() {
   const [layout, setLayout] = useState<'wizard' | 'scroll'>('wizard');
   const [showPreview, setShowPreview] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [defaultPoints, setDefaultPoints] = useState(1);
   
   useEffect(() => {
     async function fetchHomework() {
@@ -88,7 +90,8 @@ function CreateForm() {
                       correctOption: qMap[String(q.correct_answer)] ?? 0,
                       explanation: q.explanation ? String(q.explanation) : '',
                       type: (q.question_type as 'multiple_choice' | 'true_false' | 'essay') || 'multiple_choice',
-                      imageUrl: q.image_url ? String(q.image_url) : null
+                      imageUrl: q.image_url ? String(q.image_url) : null,
+                      points: typeof q.points === 'number' ? q.points : 1
                   };
               });
               setQuestions(mappedQuestions);
@@ -112,7 +115,7 @@ function CreateForm() {
     
     setQuestions([
       ...questions,
-      { id: Date.now().toString(), text: '', options, correctOption: -1, explanation: '', type, imageUrl: null }
+      { id: Date.now().toString(), text: '', options, correctOption: -1, explanation: '', type, imageUrl: null, points: defaultPoints }
     ]);
   };
 
@@ -125,6 +128,10 @@ function CreateForm() {
 
   const updateQuestionText = (id: string, text: string) => {
     setQuestions(questions.map(q => q.id === id ? { ...q, text } : q));
+  };
+
+  const updateQuestionPoints = (id: string, points: number) => {
+    setQuestions(questions.map(q => q.id === id ? { ...q, points } : q));
   };
 
   const updateOptionText = (qId: string, optIndex: number, text: string) => {
@@ -420,6 +427,16 @@ function CreateForm() {
         {isSettingsOpen && (
           <div style={{ padding: '2rem', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem' }}>
+              <Input 
+                label="الدرجة الافتراضية لكل سؤال" 
+                type="number"
+                placeholder="مثال: 1" 
+                value={defaultPoints}
+                onChange={(e) => setDefaultPoints(parseInt(e.target.value) || 1)}
+                min={1}
+              />
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem' }}>
             {/* Randomize Questions Toggle */}
             <div 
               style={{ 
@@ -605,8 +622,14 @@ function CreateForm() {
     </div>
   );
 
-  const renderStep2 = () => (
+  const renderStep2 = () => {
+    const totalPoints = questions.reduce((sum, q) => sum + (q.points || 0), 0);
+    return (
     <div className={styles.formContent}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', padding: '1rem', backgroundColor: 'rgba(59, 130, 246, 0.1)', borderRadius: '1rem', border: '1px solid var(--primary)' }}>
+         <h3 style={{ margin: 0, color: 'var(--primary)', fontWeight: 'bold' }}>إجمالي الدرجات</h3>
+         <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--foreground)' }}>{totalPoints}</div>
+      </div>
       <div className={styles.questionsList}>
         {questions.map((q, qIndex) => (
           <Card key={q.id} id={`question-card-${q.id}`} className={`${styles.questionCard} ${questionErrors[q.id] ? styles.cardWithError : ''}`}>
@@ -668,6 +691,32 @@ function CreateForm() {
                 </div>
               </div>
 
+              <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', alignItems: 'flex-start' }}>
+                <div style={{ flex: 1 }}>
+                  <Input 
+                    id={`q-text-${qIndex}`}
+                    placeholder="مثال: ما وحدة القوة في النظام الدولي؟" 
+                    className={styles.qTextInput}
+                    value={q.text}
+                    onChange={(e) => updateQuestionText(q.id, e.target.value)}
+                    required
+                    label="نص السؤال"
+                  />
+                </div>
+                <div style={{ width: '120px' }}>
+                  <Input 
+                    id={`q-points-${qIndex}`}
+                    type="number"
+                    min={1}
+                    value={q.points}
+                    onChange={(e) => updateQuestionPoints(q.id, parseInt(e.target.value) || 1)}
+                    required
+                    label="الدرجة"
+                    style={{ textAlign: 'center' }}
+                  />
+                </div>
+              </div>
+
               <div style={{ marginBottom: '1.5rem' }}>
                 <label style={{ fontSize: '0.875rem', fontWeight: '800', color: 'var(--foreground)', opacity: 0.8, display: 'block', marginBottom: '0.5rem' }}>صورة السؤال (اختياري)</label>
                 <ImageUploader 
@@ -675,16 +724,6 @@ function CreateForm() {
                   onChange={(url) => updateImageUrl(q.id, url)} 
                 />
               </div>
-
-              <Input 
-                id={`q-text-${qIndex}`}
-                placeholder="مثال: ما وحدة القوة في النظام الدولي؟" 
-                className={styles.qTextInput}
-                value={q.text}
-                onChange={(e) => updateQuestionText(q.id, e.target.value)}
-                required
-                label="نص السؤال"
-              />
               
               {q.type === 'essay' ? (
                 <div style={{ padding: '1.5rem', border: '2px dashed var(--border)', borderRadius: '1rem', textAlign: 'center', color: 'var(--muted-foreground)' }}>
@@ -776,7 +815,7 @@ function CreateForm() {
         </Button>
       </div>
     </div>
-  );
+  )};
 
   const renderStep3 = () => (
     <div className={styles.formContent}>

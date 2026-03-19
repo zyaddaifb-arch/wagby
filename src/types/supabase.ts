@@ -18,23 +18,32 @@ export type Database = {
         Row: {
           id: string
           is_correct: boolean | null
+          points_awarded: number | null
           question_id: string
           selected_option: string | null
           submission_id: string
+          text_answer: string | null
+          image_urls: string[] | null
         }
         Insert: {
           id?: string
           is_correct?: boolean | null
+          points_awarded?: number | null
           question_id: string
           selected_option?: string | null
           submission_id: string
+          text_answer?: string | null
+          image_urls?: string[] | null
         }
         Update: {
           id?: string
           is_correct?: boolean | null
+          points_awarded?: number | null
           question_id?: string
           selected_option?: string | null
           submission_id?: string
+          text_answer?: string | null
+          image_urls?: string[] | null
         }
         Relationships: [
           {
@@ -125,7 +134,11 @@ export type Database = {
           option_c: string
           option_d: string
           order_index: number
+          points: number
           question_text: string
+          question_type: string
+          explanation: string | null
+          image_url: string | null
         }
         Insert: {
           correct_answer: string
@@ -136,7 +149,11 @@ export type Database = {
           option_c: string
           option_d: string
           order_index?: number
+          points?: number
           question_text: string
+          question_type?: string
+          explanation?: string | null
+          image_url?: string | null
         }
         Update: {
           correct_answer?: string
@@ -147,7 +164,11 @@ export type Database = {
           option_c?: string
           option_d?: string
           order_index?: number
+          points?: number
           question_text?: string
+          question_type?: string
+          explanation?: string | null
+          image_url?: string | null
         }
         Relationships: [
           {
@@ -164,25 +185,37 @@ export type Database = {
           homework_id: string
           id: string
           score: number | null
+          status: string
           student_name: string
           submitted_at: string
           total_questions: number | null
+          student_phone: string | null
+          parent_phone: string | null
+          duration: number | null
         }
         Insert: {
           homework_id: string
           id?: string
           score?: number | null
+          status?: string
           student_name: string
           submitted_at?: string
           total_questions?: number | null
+          student_phone?: string | null
+          parent_phone?: string | null
+          duration?: number | null
         }
         Update: {
           homework_id?: string
           id?: string
           score?: number | null
+          status?: string
           student_name?: string
           submitted_at?: string
           total_questions?: number | null
+          student_phone?: string | null
+          parent_phone?: string | null
+          duration?: number | null
         }
         Relationships: [
           {

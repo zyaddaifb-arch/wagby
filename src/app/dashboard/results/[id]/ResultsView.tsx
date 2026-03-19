@@ -19,6 +19,7 @@ type Question = {
   option_d: string;
   order_index: number;
   explanation?: string;
+  points?: number;
 };
 
 type Answer = {
@@ -27,6 +28,9 @@ type Answer = {
   question_id: string;
   selected_option: string;
   is_correct: boolean;
+  points_awarded?: number | null;
+  text_answer?: string | null;
+  image_urls?: string[] | null;
 };
 
 type Submission = {
@@ -82,20 +86,21 @@ export function ResultsView({ submissions, questions, allAnswers, hwInfo }: Resu
   const [sortBy, setSortBy] = useState('score_desc');
   const [selectedStudent, setSelectedStudent] = useState<Submission | null>(null);
   const [isGrading, setIsGrading] = useState(false);
+  const [gradesParams, setGradesParams] = useState<Record<string, number>>({});
   const router = useRouter();
 
   const isPendingGrading = (subId: string) => {
     const subAnswers = allAnswers.filter(a => a.submission_id === subId);
     return subAnswers.some(a => {
       const q = questions.find(q => q.id === a.question_id);
-      return q?.question_type === 'essay' && (a.is_correct === null || a.is_correct === undefined);
+      return q?.question_type === 'essay' && (a.points_awarded === null || a.points_awarded === undefined);
     });
   };
 
-  const handleGrade = async (subId: string, qId: string, correct: boolean) => {
+  const handleGrade = async (subId: string, qId: string, pointsAwarded: number) => {
     setIsGrading(true);
     try {
-      const res = await gradeEssayAnswer(subId, qId, correct);
+      const res = await gradeEssayAnswer(subId, qId, pointsAwarded);
       if (res.success) {
         // The page will revalidate, but we might want to update local state too or just refresh
         router.refresh();
@@ -110,6 +115,10 @@ export function ResultsView({ submissions, questions, allAnswers, hwInfo }: Resu
   };
 
   // Sorting and Ranking
+  const hwTotalPoints = useMemo(() => {
+    return questions.reduce((sum, q) => sum + (q.points || 1), 0);
+  }, [questions]);
+
   const ranked = useMemo(() =>
     [...submissions].sort((a, b) => b.score - a.score || new Date(a.submitted_at).getTime() - new Date(b.submitted_at).getTime()),
     [submissions]
@@ -145,9 +154,19 @@ export function ResultsView({ submissions, questions, allAnswers, hwInfo }: Resu
   const questionStats = useMemo(() => {
     return sortedQuestions.map(q => {
       const answersForQ = allAnswers.filter(a => a.question_id === q.id);
-      const correctCount = answersForQ.filter(a => a.is_correct).length;
       const totalAnswers = answersForQ.length;
-      const successPct = totalAnswers > 0 ? Math.round((correctCount / totalAnswers) * 100) : 0;
+      
+      let successPct = 0;
+      if (q.question_type === 'essay') {
+        const gradedAnswers = answersForQ.filter(a => a.points_awarded !== null && a.points_awarded !== undefined);
+        const totalPointsAwarded = gradedAnswers.reduce((sum, a) => sum + (a.points_awarded || 0), 0);
+        const maxPossible = gradedAnswers.length * (q.points || 1);
+        successPct = maxPossible > 0 ? Math.round((totalPointsAwarded / maxPossible) * 100) : 0;
+      } else {
+        const correctCount = answersForQ.filter(a => a.is_correct).length;
+        successPct = totalAnswers > 0 ? Math.round((correctCount / totalAnswers) * 100) : 0;
+      }
+
       return { ...q, successPct, totalAnswers };
     });
   }, [sortedQuestions, allAnswers]);
@@ -159,8 +178,8 @@ export function ResultsView({ submissions, questions, allAnswers, hwInfo }: Resu
 
   const top3 = ranked.slice(0, 3);
   const totalSubs = submissions.length;
-  const avgPct = totalSubs > 0
-    ? Math.round(submissions.reduce((sum, s) => sum + (s.score / s.total_questions) * 100, 0) / totalSubs)
+  const avgPct = totalSubs > 0 && hwTotalPoints > 0
+    ? Math.round(submissions.reduce((sum, s) => sum + (s.score / hwTotalPoints) * 100, 0) / totalSubs)
     : 0;
 
   const studentAnswers = useMemo(() => {
@@ -254,7 +273,7 @@ export function ResultsView({ submissions, questions, allAnswers, hwInfo }: Resu
                   const s = top3[idx];
                   if (!s) return null;
                   const m = medalColors[idx];
-                  const pct = Math.round((s.score / s.total_questions) * 100);
+                  const pct = hwTotalPoints > 0 ? Math.round((s.score / hwTotalPoints) * 100) : 0;
                   return (
                     <div
                       key={s.id}
@@ -267,7 +286,7 @@ export function ResultsView({ submissions, questions, allAnswers, hwInfo }: Resu
                       </div>
                       <div className={styles.podiumName}>{s.student_name}</div>
                       <div className={styles.podiumScore} style={{ color: getScoreColor(pct) }}>
-                        {s.score} / {s.total_questions}
+                        {s.score} / {hwTotalPoints}
                       </div>
                       <div className={styles.podiumPct} style={{ color: getScoreColor(pct) }}>{pct}%</div>
                     </div>
@@ -308,7 +327,7 @@ export function ResultsView({ submissions, questions, allAnswers, hwInfo }: Resu
                 <div className={styles.noResults}>لا توجد نتائج تطابق بحثك</div>
               ) : (
                 filteredSubmissions.map((s) => {
-                  const pct = Math.round((s.score / s.total_questions) * 100);
+                  const pct = hwTotalPoints > 0 ? Math.round((s.score / hwTotalPoints) * 100) : 0;
                   const rank = ranked.findIndex(r => r.id === s.id) + 1;
                   const scoreColor = getScoreColor(pct);
                   const isTop = rank === 1;
@@ -339,7 +358,7 @@ export function ResultsView({ submissions, questions, allAnswers, hwInfo }: Resu
                       <div className={styles.cardScore}>
                         <span style={{ color: scoreColor }}>{s.score}</span>
                         <span className={styles.cardScoreSlash}>/</span>
-                        <span>{s.total_questions}</span>
+                        <span>{hwTotalPoints}</span>
                       </div>
                       <div className={styles.cardAction}>
                         <span>👁️</span>
@@ -369,8 +388,8 @@ export function ResultsView({ submissions, questions, allAnswers, hwInfo }: Resu
                   {selectedStudent.duration !== undefined && selectedStudent.duration > 0 && (
                     <span style={{ marginLeft: '1rem', color: 'var(--muted-foreground)', fontWeight: 700 }}>⏱️ {Math.floor(selectedStudent.duration / 60)}:{(selectedStudent.duration % 60).toString().padStart(2, '0')}</span>
                   )}
-                  <span className={styles.modalScore} style={{ color: getScoreColor((selectedStudent.score / selectedStudent.total_questions) * 100) }}>
-                    الدرجة: {selectedStudent.score} / {selectedStudent.total_questions}
+                  <span className={styles.modalScore} style={{ color: getScoreColor(hwTotalPoints > 0 ? (selectedStudent.score / hwTotalPoints) * 100 : 0) }}>
+                    الدرجة: {selectedStudent.score} / {hwTotalPoints}
                   </span>
                 </div>
               </div>
@@ -382,9 +401,15 @@ export function ResultsView({ submissions, questions, allAnswers, hwInfo }: Resu
                 <div key={item.question.id} className={styles.answerItem}>
                   <div className={styles.answerQHead}>
                     <span className={styles.ansNum}>سؤال {idx + 1}</span>
-                    <span className={styles.ansStatus} style={{ color: item.answer?.is_correct ? '#22c55e' : '#ef4444' }}>
-                      {item.answer?.is_correct ? '✅ صحيح' : '❌ خطأ'}
-                    </span>
+                    {item.question.question_type === 'essay' ? (
+                      <span className={styles.ansStatus} style={{ color: item.answer?.points_awarded !== null && item.answer?.points_awarded !== undefined ? '#22c55e' : '#f59e0b' }}>
+                        {item.answer?.points_awarded !== null && item.answer?.points_awarded !== undefined ? `✅ مصحح (${item.answer.points_awarded}/${item.question.points || 1})` : '⏳ قيد التصحيح'}
+                      </span>
+                    ) : (
+                      <span className={styles.ansStatus} style={{ color: item.answer?.is_correct ? '#22c55e' : '#ef4444' }}>
+                        {item.answer?.is_correct ? '✅ صحيح' : '❌ خطأ'}
+                      </span>
+                    )}
                   </div>
                   <p className={styles.ansText}>{item.question.question_text}</p>
                   
@@ -393,39 +418,45 @@ export function ResultsView({ submissions, questions, allAnswers, hwInfo }: Resu
                       <div style={{ padding: '1rem', backgroundColor: 'var(--background)', borderRadius: '0.5rem', border: '1px solid var(--border)' }}>
                         <span style={{ fontWeight: 600, display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem' }}>إجابة الطالب:</span>
                         {(() => {
-                          try {
-                            const parsed = JSON.parse(item.answer?.selected_option || '{}');
-                            return (
-                              <div>
-                                {parsed.text && <p style={{ whiteSpace: 'pre-wrap', marginBottom: parsed.imageUrl ? '1rem' : 0, color: 'var(--foreground)' }}>{parsed.text}</p>}
-                                {parsed.imageUrl && <img src={parsed.imageUrl} alt="صورة إجابة الطالب" style={{ maxWidth: '100%', borderRadius: '0.5rem', border: '1px solid var(--border)' }} />}
-                                {!parsed.text && !parsed.imageUrl && <span style={{ color: 'var(--muted-foreground)' }}>بدون إجابة</span>}
-                              </div>
-                            );
-                          } catch (e) {
-                            return <p style={{ color: 'var(--foreground)' }}>{item.answer?.selected_option || 'بدون إجابة'}</p>;
+                          const text = item.answer?.text_answer;
+                          const images = item.answer?.image_urls || [];
+                          
+                          if (!text && images.length === 0) {
+                            return <span style={{ color: 'var(--muted-foreground)' }}>بدون إجابة</span>;
                           }
+
+                          return (
+                            <div>
+                              {text && <p style={{ whiteSpace: 'pre-wrap', marginBottom: images.length > 0 ? '1rem' : 0, color: 'var(--foreground)' }}>{text}</p>}
+                              {images.map((img, i) => (
+                                <img key={i} src={img} alt="صورة إجابة الطالب" style={{ maxWidth: '100%', borderRadius: '0.5rem', border: '1px solid var(--border)', marginTop: i > 0 ? '0.5rem' : 0 }} />
+                              ))}
+                            </div>
+                          );
                         })()}
                       </div>
 
-                      <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                      <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', marginTop: '1rem', padding: '1rem', backgroundColor: 'var(--card)', borderRadius: '0.5rem', border: '1px solid var(--border)' }}>
+                        <span style={{ fontWeight: 600 }}>الدرجة:</span>
+                        <Input 
+                          type="number" 
+                          min={0} 
+                          max={item.question.points || 1} 
+                          value={gradesParams[item.answer?.id || ''] !== undefined ? gradesParams[item.answer?.id || ''] : (item.answer?.points_awarded ?? '')}
+                          onChange={(e) => setGradesParams({...gradesParams, [item.answer?.id || '']: Number(e.target.value)})}
+                          style={{ width: '80px', textAlign: 'center' }}
+                        />
+                        <span style={{ color: 'var(--muted-foreground)' }}> / {item.question.points || 1}</span>
                         <Button 
                           size="sm" 
-                          variant={item.answer?.is_correct === true ? 'primary' : 'outline'}
-                          onClick={() => handleGrade(selectedStudent.id, item.question.id, true)}
+                          variant="primary"
+                          onClick={() => handleGrade(selectedStudent.id, item.question.id, gradesParams[item.answer?.id || ''] !== undefined ? gradesParams[item.answer?.id || ''] : (item.answer?.points_awarded || 0))}
                           disabled={isGrading}
+                          style={{ marginRight: 'auto' }}
                         >
-                          {item.answer?.is_correct === true ? '✅ محسوب صحيح' : '✔️ رصد كـ صحيح'}
+                          {item.answer?.points_awarded !== null && item.answer?.points_awarded !== undefined ? 'تحديث الدرجة' : 'حفظ الدرجة'}
                         </Button>
-                        <Button 
-                          size="sm" 
-                          variant={item.answer?.is_correct === false ? 'danger' : 'outline'}
-                          onClick={() => handleGrade(selectedStudent.id, item.question.id, false)}
-                          disabled={isGrading}
-                        >
-                          {item.answer?.is_correct === false ? '❌ محسوب خطأ' : '✖️ رصد كـ خطأ'}
-                        </Button>
-                        {(item.answer?.is_correct === null || item.answer?.is_correct === undefined) && (
+                        {(item.answer?.points_awarded === null || item.answer?.points_awarded === undefined) && (
                           <span style={{ fontSize: '0.85rem', color: '#f59e0b', fontWeight: 700 }}>⚠️ بانتظار تصحيحك</span>
                         )}
                       </div>

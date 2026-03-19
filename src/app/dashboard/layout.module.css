@@ -20,7 +20,7 @@
 
 @media (max-width: 768px) {
   .mainContent {
-    padding: 1.25rem 1rem;
+    padding: 1rem 0.5rem;
     /* Space for fixed bottom nav bar */
     padding-bottom: calc(5rem + env(safe-area-inset-bottom, 0px));
   }

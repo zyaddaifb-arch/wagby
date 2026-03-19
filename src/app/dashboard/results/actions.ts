@@ -6,7 +6,7 @@ import { revalidatePath } from 'next/cache'
 export async function gradeEssayAnswer(
   submissionId: string,
   questionId: string,
-  isCorrect: boolean
+  pointsAwarded: number
 ) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -14,26 +14,29 @@ export async function gradeEssayAnswer(
   if (!user) return { error: 'Unauthorized' }
 
   try {
-    // 1. Update the is_correct field in the answers table
+    // 1. Update the is_correct and points_awarded fields in the answers table
     const { error: updateError } = await supabase
       .from('answers')
-      .update({ is_correct: isCorrect })
+      .update({ is_correct: pointsAwarded > 0, points_awarded: pointsAwarded })
       .eq('submission_id', submissionId)
       .eq('question_id', questionId)
 
     if (updateError) throw new Error(updateError.message)
 
-    // 2. Recalculate total score for the submission
-    const { count: finalScore } = await supabase
+    // 2. Recalculate total score for the submission by summing points_awarded
+    const { data: allAnswers } = await supabase
       .from('answers')
-      .select('*', { count: 'exact', head: true })
+      .select('points_awarded')
       .eq('submission_id', submissionId)
-      .eq('is_correct', true)
+
+    const finalScore = allAnswers?.reduce((sum, a) => sum + (a.points_awarded || 0), 0) || 0;
+    const pendingCount = allAnswers?.filter(a => a.points_awarded === null).length || 0;
+    const finalStatus = pendingCount > 0 ? 'pending_grading' : 'completed';
 
     // 3. Update the submissions table
     const { error: subError } = await supabase
       .from('submissions')
-      .update({ score: finalScore || 0 })
+      .update({ score: finalScore, status: finalStatus })
       .eq('id', submissionId)
 
     if (subError) throw new Error(subError.message)

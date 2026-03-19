@@ -15,7 +15,7 @@ export async function getHomeworkByShareCode(shareCode: string) {
       max_attempts,
       total_students,
       profiles (full_name, settings),
-      questions (id, question_text, option_a, option_b, option_c, option_d, order_index, explanation, question_type, image_url)
+      questions (id, question_text, option_a, option_b, option_c, option_d, order_index, explanation, question_type, image_url, points)
     `)
     .eq('share_code', shareCode.trim().toUpperCase())
     .filter('questions.order_index', 'gte', 0)
@@ -33,6 +33,7 @@ export async function getHomeworkByShareCode(shareCode: string) {
     explanation: q.explanation ? String(q.explanation) : null,
     question_type: (q.question_type as 'multiple_choice' | 'true_false' | 'essay') || 'multiple_choice',
     image_url: q.image_url ? String(q.image_url) : null,
+    points: typeof q.points === 'number' ? q.points : 1,
   }))
 
   return {
@@ -98,7 +99,7 @@ export async function submitHomework(data: SubmissionInput) {
       is_published, 
       max_attempts, 
       profiles (settings), 
-      questions (id, correct_answer, order_index, question_type)
+      questions (id, correct_answer, order_index, question_type, points)
     `)
     .eq('share_code', cleanShareCode)
     .filter('questions.order_index', 'gte', 0)
@@ -110,7 +111,7 @@ export async function submitHomework(data: SubmissionInput) {
   }
 
   const optionMap = ['a', 'b', 'c', 'd']
-  let correctCount = 0
+  let totalScore = 0
 
   // Check answers
   const answersData = data.answers.map(ans => {
@@ -120,6 +121,7 @@ export async function submitHomework(data: SubmissionInput) {
     let selectedOption: string | null = null
     let textAnswer: string | null = null
     let imageUrls: string[] = []
+    let pointsAwarded: number | null = null;
 
     if (question?.question_type === 'essay') {
       try {
@@ -131,10 +133,18 @@ export async function submitHomework(data: SubmissionInput) {
       }
       selectedOption = null; // Important: set to NULL to avoid constraint violation
       isCorrect = false; // Graded manually later
+      pointsAwarded = null; // Pending grading
     } else if (ans.selectedIndex !== undefined) {
       selectedOption = optionMap[ans.selectedIndex]
       isCorrect = question ? question.correct_answer === selectedOption : false
-      if (isCorrect) correctCount++
+      
+      const qPoints = question?.points || 1;
+      if (isCorrect) {
+        pointsAwarded = qPoints;
+        totalScore += qPoints;
+      } else {
+        pointsAwarded = 0;
+      }
     }
 
     return {
@@ -142,7 +152,8 @@ export async function submitHomework(data: SubmissionInput) {
       selected_option: selectedOption,
       is_correct: isCorrect,
       text_answer: textAnswer,
-      image_urls: imageUrls
+      image_urls: imageUrls,
+      points_awarded: pointsAwarded
     }
   })
 
@@ -167,7 +178,7 @@ export async function submitHomework(data: SubmissionInput) {
     p_homework_id: hw.id,
     p_student_name: cleanStudentName,
     p_student_phone: cleanStudentPhone,
-    p_score: correctCount,
+    p_score: totalScore,
     p_total_questions: hw.questions.length,
     p_answers: answersData,
     p_duration: data.duration || 0,
@@ -231,7 +242,8 @@ export async function getSubmissionResult(submissionId: string) {
           correct_answer,
           explanation,
           question_type,
-          image_url
+          image_url,
+          points
         )
       `)
       .eq('submission_id', submissionId)

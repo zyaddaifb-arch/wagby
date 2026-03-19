@@ -31,6 +31,7 @@ export type SaveHomeworkInput = {
     explanation?: string
     imageUrl?: string | null
     questionType?: 'multiple_choice' | 'true_false' | 'essay'
+    points: number
   }[]
 }
 
@@ -196,6 +197,7 @@ export async function saveHomework(data: SaveHomeworkInput) {
          image_url: q.imageUrl || null,
          question_type: q.questionType || 'multiple_choice',
          order_index: index,
+         points: q.points || 1,
        }
     })
     

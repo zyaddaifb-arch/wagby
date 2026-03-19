@@ -149,6 +149,55 @@
   box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
 }
 
+/* Empty State */
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 50vh;
+  text-align: center;
+  padding: 3rem 1.5rem;
+  background: var(--card);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+  gap: 1.25rem;
+  animation: fadeIn 0.4s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.emptyIcon {
+  font-size: 4rem;
+  margin-bottom: 0.5rem;
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
+  100% { transform: translateY(0px); }
+}
+
+.emptyTitle {
+  font-size: 1.75rem;
+  font-weight: 900;
+  color: var(--foreground);
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+.emptyText {
+  font-size: 1rem;
+  color: var(--muted-foreground);
+  max-width: 400px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
 /* Homework Cards Grid */
 .hwCardsGrid {
   display: grid;
@@ -780,17 +829,21 @@
   }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 640px) {
   .statsGrid {
+    grid-template-columns: repeat(1, 1fr);
+  }
+
+  .hwCardsGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .quickActions {
     grid-template-columns: repeat(1, 1fr);
   }
 
   .pageTitle {
     font-size: 1.6rem;
-  }
-
-  .quickActions {
-    grid-template-columns: repeat(1, 1fr);
   }
 }
 

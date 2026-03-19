@@ -29,9 +29,11 @@ export default async function StudentResultPage({
     notFound();
   }
 
-  const percentage = (result.score / result.total_questions) * 100;
+  const totalPoints = (result.answers as any[]).reduce((sum, ans) => sum + (ans.questions?.points || 1), 0);
+  const percentage = totalPoints > 0 ? (result.score / totalPoints) * 100 : 0;
   const scoreColor = getScoreColor(percentage);
   const statusLabel = getScoreStatus(percentage);
+  const isPendingGrading = result.status === 'pending_grading';
 
   const reviews = (result.answers as any[]).map(ans => {
     const q = ans.questions;
@@ -76,7 +78,9 @@ export default async function StudentResultPage({
       correctAnswer,
       isCorrect: ans.is_correct,
       explanation: q.explanation,
-      imageUrl: q.image_url
+      imageUrl: q.image_url,
+      points: q.points || 1,
+      pointsAwarded: ans.points_awarded
     };
   });
 
@@ -86,14 +90,16 @@ export default async function StudentResultPage({
         <CardContent className={styles.resultCardContent}>
           <div className={styles.resultCircle} style={{ borderColor: scoreColor, background: `${scoreColor}10` }}>
             <span className={styles.scoreValue} style={{ color: scoreColor }}>{result.score}</span>
-            <span className={styles.scoreTotal}>من {result.total_questions}</span>
+            <span className={styles.scoreTotal}>من {totalPoints}</span>
           </div>
           
           <h1 className={styles.resultTitle}>نتيجتك يا {result.student_name}</h1>
           <p className={styles.resultSubtitle}>
-            {statusLabel === 'ممتاز' ? 'أحسنت! أداء ممتاز 🌟' : 
-             statusLabel === 'جيد' ? 'عمل جيد! يمكنك التحسن أكثر 👍' : 
-             'حاول مرة أخرى في المرات القادمة 💪'}
+            {isPendingGrading 
+              ? 'أحسنت تسليم الواجب! يوجد أسئلة مقالية قيد التصحيح من قبل المعلم ⏳'
+              : statusLabel === 'ممتاز' ? 'أحسنت! أداء ممتاز 🌟' : 
+                statusLabel === 'جيد' ? 'عمل جيد! يمكنك التحسن أكثر 👍' : 
+                'حاول مرة أخرى في المرات القادمة 💪'}
           </p>
           
           <div className={styles.rankingBox}>
@@ -128,10 +134,10 @@ export default async function StudentResultPage({
           
           <div className={styles.successNote}>
             <p>
-              {reviews.some(r => r.questionType === 'essay' && (r.isCorrect === null || r.isCorrect === undefined)) ? (
-                <span style={{ color: '#f59e0b', fontWeight: 800 }}>⚠️ بانتظار تصحيح المعلم للأسئلة المقالية للدرجة النهائية.</span>
+              {isPendingGrading ? (
+                <span style={{ color: '#f59e0b', fontWeight: 800 }}>⚠️ هذه الدرجة مؤقتة بانتظار تصحيح المعلم للأسئلة المقالية للحصول على الدرجة النهائية.</span>
               ) : (
-                'تم تسليم إجاباتك بنجاح. يمكنك مراجعة إجاباتك بالأسفل.'
+                'تم حفظ إجاباتك ونتيجتك بنجاح. يمكنك مراجعة الإجابات بالأسفل.'
               )}
             </p>
           </div>
@@ -143,7 +149,12 @@ export default async function StudentResultPage({
         <h2 className={styles.reviewSectionTitle}>مراجعة الإجابات</h2>
         {reviews.map((rev, idx) => (
           <div key={idx} className={styles.reviewQuestionCard}>
-            <div className={styles.reviewQuestionText}>{idx + 1}. {rev.questionText}</div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+              <div className={styles.reviewQuestionText}>{idx + 1}. {rev.questionText}</div>
+              <div style={{ padding: '0.25rem 0.5rem', backgroundColor: 'var(--accent)', color: 'var(--accent-foreground)', borderRadius: '0.5rem', fontSize: '0.85rem', fontWeight: 800 }}>
+                {rev.points} درجات
+              </div>
+            </div>
             
             {rev.imageUrl && (
               <div className={styles.reviewImageWrapper}>
@@ -151,13 +162,13 @@ export default async function StudentResultPage({
               </div>
             )}
 
-            {rev.questionType !== 'essay' || (rev.isCorrect !== null && rev.isCorrect !== undefined) ? (
-              <div className={`${styles.statusIndicator} ${rev.isCorrect ? styles.correct : styles.incorrect}`}>
-                {rev.isCorrect ? '✅ إجابة صحيحة' : '❌ إجابة خاطئة'}
+            {rev.questionType !== 'essay' || rev.pointsAwarded !== null ? (
+              <div className={`${styles.statusIndicator} ${rev.pointsAwarded > 0 ? styles.correct : styles.incorrect}`}>
+                {rev.pointsAwarded > 0 ? `✅ حصلت على ${rev.pointsAwarded} / ${rev.points}` : `❌ حصلت على 0 / ${rev.points}`}
               </div>
             ) : (
               <div className={styles.statusIndicator} style={{ backgroundColor: 'rgba(245, 158, 11, 0.1)', color: '#f59e0b', fontWeight: 800 }}>
-                📝 بانتظار تصحيح المعلم
+                📝 قيد التصحيح ({rev.points} درجات)
               </div>
             )}
 
