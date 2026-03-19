@@ -58,7 +58,7 @@ export default function LoginPage() {
           
           <div className={styles.formWrapper}>
             <Card className="glass">
-              <CardContent style={{ padding: '3.5rem' }}>
+              <CardContent className={styles.cardContent}>
                 <form className={styles.formContainer} onSubmit={handleSubmit}>
                   {error && (
                     <div className={styles.errorAlert}>

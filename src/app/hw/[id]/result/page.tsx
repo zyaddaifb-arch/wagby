@@ -199,6 +199,18 @@ export default async function StudentResultPage({
           </div>
         ))}
       </div>
+
+      {/* Marketing Section */}
+      <div className={styles.marketingBanner}>
+        <p className={styles.marketingText}>
+          تم إنشاء هذا الواجب بكل حب باستخدام منصة <Link href="/" className={styles.marketingLink}>واجبي</Link> 🚀
+        </p>
+        <div className={styles.marketingAction}>
+          <p className={styles.marketingText}>
+            هل أنت معلم؟ <Link href="/" className={styles.marketingCTA}>أنشئ حسابك الآن وجربها مجاناً</Link>
+          </p>
+        </div>
+      </div>
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import React from 'react';
+import Link from 'next/link';
 import { Card, CardContent } from '../../../components/ui/Card';
 import styles from '../student.module.css';
 import { getHomeworkByShareCode } from './actions';
@@ -44,6 +45,18 @@ export default async function StudentStartPage({
           error={resolvedSearch.error}
           settings={hw.settings}
         />
+      </div>
+
+      {/* Marketing Section */}
+      <div className={styles.marketingBanner} style={{ maxWidth: '500px', width: '100%', marginTop: '2rem' }}>
+        <p className={styles.marketingText}>
+          تم إنشاء هذا الواجب باستخدام منصة <Link href="/" className={styles.marketingLink}>واجبي</Link> 🚀
+        </p>
+        <div className={styles.marketingAction}>
+          <p className={styles.marketingText}>
+            هل أنت معلم؟ <Link href="/" className={styles.marketingCTA}>اصنع واجباتك التفاعلية هنا</Link>
+          </p>
+        </div>
       </div>
     </div>
   );

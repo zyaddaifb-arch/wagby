@@ -732,7 +732,7 @@
   }
 
   .statCard {
-    padding: 1.25rem 1rem;
+    padding: 1rem 0.75rem;
   }
 
   .statCardValue {
@@ -743,6 +743,14 @@
   .hwCardsGrid {
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
     gap: 1rem;
+  }
+
+  .hwCardHeader {
+    padding: 1rem 1.25rem;
+  }
+
+  .hwCardStat {
+    padding: 0.75rem 0.5rem;
   }
 
   /* Toolbar: already stacks, just polish sizing */

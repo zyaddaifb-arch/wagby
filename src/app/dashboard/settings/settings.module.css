@@ -170,10 +170,16 @@
 }
 
 @media (max-width: 768px) {
+  .container {
+    gap: 1.5rem;
+  }
+  .sections {
+    gap: 1.5rem;
+  }
   .grid2cols {
     grid-template-columns: 1fr;
   }
   .sectionContent {
-    padding: 1.25rem 1rem !important;
+    padding: 1rem 0.5rem !important;
   }
 }

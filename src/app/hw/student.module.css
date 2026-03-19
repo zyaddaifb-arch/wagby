@@ -642,10 +642,86 @@
   }
 }
 
+/* Marketing Banner */
+.marketingBanner {
+  margin-top: 3rem;
+  text-align: center;
+  padding: 2.5rem 2rem;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 2rem;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+  animation: fadeIn 1s ease-out;
+  position: relative;
+  overflow: hidden;
+}
+
+.marketingBanner::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(59, 130, 246, 0.05) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.marketingText {
+  margin: 0;
+  font-size: 1.1rem;
+  color: var(--muted-foreground);
+  font-weight: 600;
+  line-height: 1.6;
+}
+
+.marketingLink {
+  color: var(--primary);
+  font-weight: 900;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  display: inline-block;
+}
+
+.marketingLink:hover {
+  transform: translateY(-2px);
+  text-shadow: 0 0 15px rgba(59, 130, 246, 0.5);
+}
+
+.marketingAction {
+  margin-top: 1rem;
+  font-size: 1rem;
+}
+
+.marketingCTA {
+  color: var(--accent);
+  font-weight: 800;
+  text-underline-offset: 4px;
+  transition: all 0.3s ease;
+}
+
+.marketingCTA:hover {
+  color: var(--foreground);
+  text-decoration-color: var(--primary);
+}
+
+@media (max-width: 640px) {
+  .marketingBanner {
+    padding: 2rem 1.5rem;
+    margin-top: 2rem;
+  }
+  
+  .marketingText {
+    font-size: 1rem;
+  }
+}
+
 /* Specific component styles for SolveQuizClient */
 .container {
   width: 100%;
-  max-width: 900px;
+  max-width: 1100px; /* Increased from 900px */
   margin: 0 auto;
   animation: fadeIn 0.4s ease-out;
 }
@@ -700,7 +776,7 @@
 
 .scrollContainer {
   width: 100%;
-  max-width: 900px;
+  max-width: 1100px; /* Increased from 900px */
   margin: 0 auto;
   display: flex;
   flex-direction: column;
@@ -798,6 +874,73 @@
   font-weight: 900;
   margin-bottom: 3rem;
   line-height: 1.5;
+}
+
+/* Question Navigation Bar */
+.questionNavBar {
+  display: flex;
+  overflow-x: auto;
+  gap: 0.75rem;
+  padding: 1rem 0.5rem;
+  margin-bottom: 1.5rem;
+  /* Hide scrollbar for cleaner look but keep it scrollable */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  scroll-behavior: smooth;
+  width: 100%;
+}
+
+.questionNavBar::-webkit-scrollbar {
+  display: none;
+}
+
+.questionNavBtn {
+  flex-shrink: 0;
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: 0.75rem; /* Changed to square-like */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 1.25rem;
+  border: 2px solid var(--border);
+  background-color: var(--card);
+  color: var(--foreground);
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.questionNavBtn:hover:not(:disabled) {
+  transform: translateY(-4px);
+  border-color: var(--primary);
+  background-color: rgba(37, 99, 235, 0.05);
+  box-shadow: 0 10px 20px rgba(59, 130, 246, 0.1);
+}
+
+.questionNavBtn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.questionNavBtn.active {
+  background-color: var(--primary);
+  color: white;
+  border-color: var(--primary);
+  box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
+  transform: scale(1.05);
+}
+
+.questionNavBtn.answered {
+  background-color: rgba(16, 185, 129, 0.1);
+  border-color: #10b981;
+  color: #10b981;
+}
+
+.questionNavBtn.active.answered {
+  background-color: #10b981;
+  color: white;
+  border-color: #10b981;
+  box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
 }
 
 .scrollFooter {

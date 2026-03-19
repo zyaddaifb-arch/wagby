@@ -9,6 +9,19 @@ import { submitHomework, type SubmissionInput } from '../actions';
 import { playSound } from '@/utils/audio';
 import { ImageUploader } from '@/app/dashboard/create/ImageUploader';
 
+// Provide a quick check if a question is answered
+const isQuestionAnswered = (
+  qId: string, 
+  qType: string, 
+  answersState: Record<string, any>, 
+  essayState: Record<string, any>
+) => {
+  if (qType === 'essay') {
+    return !!(essayState[qId]?.text || essayState[qId]?.imageUrl);
+  }
+  return answersState[qId] !== undefined;
+};
+
 export function SolveQuizClient({ 
   shareCode, 
   studentName, 
@@ -86,15 +99,13 @@ export function SolveQuizClient({
   
   // State for Wizard mode
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [selectedOption, setSelectedOption] = useState<number | null>(null);
   
-  // State for Scroll mode (mapping questionId to selected original index)
-  const [scrollAnswers, setScrollAnswers] = useState<Record<string, number>>({});
+  // Unified State for multiple choice questions (mapping questionId to selected original index)
+  const [selectedAnswers, setSelectedAnswers] = useState<Record<string, number>>({});
   
   // State for Essay questions
   const [essayAnswers, setEssayAnswers] = useState<Record<string, { text?: string; imageUrl?: string | null }>>({});
 
-  const [answers, setAnswers] = useState<{ questionId: string; selectedIndex?: number; answerText?: string }[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
@@ -130,100 +141,58 @@ export function SolveQuizClient({
 
   const isLastQuestion = currentIndex === processedQuestions.length - 1;
 
+  // Number of answered questions for progress
+  const answeredCount = Object.keys(selectedAnswers).length + 
+                        Object.keys(essayAnswers).filter(id => !!(essayAnswers[id]?.text || essayAnswers[id]?.imageUrl)).length;
+  // Make sure progressPercent is between 0 and 100
+  const progressPercent = Math.min(100, Math.round((answeredCount / (processedQuestions.length || 1)) * 100));
+
   const handleNext = () => {
-    const q = processedQuestions[currentIndex];
-    
-    if (q.question_type === 'essay') {
-      const ans = essayAnswers[q.id];
-      if (ans && (ans.text || ans.imageUrl)) {
-        playSound('click');
-        setAnswers([
-          ...answers,
-          { questionId: q.id, answerText: JSON.stringify(ans) }
-        ]);
-        if (!isLastQuestion) {
-          setCurrentIndex(prev => prev + 1);
-        }
-      }
-    } else if (selectedOption !== null) {
-      playSound('click');
-      const originalIndex = q.displayOptions[selectedOption].originalIndex;
-      
-      setAnswers([
-        ...answers,
-        { questionId: q.id, selectedIndex: originalIndex }
-      ]);
-      
-      if (!isLastQuestion) {
-        setCurrentIndex(prev => prev + 1);
-        setSelectedOption(null);
-      }
+    playSound('click');
+    if (!isLastQuestion) {
+      setCurrentIndex(prev => prev + 1);
     }
   };
 
-  const handleOptionSelectWizard = (index: number) => {
+  const handleOptionSelectWizard = (qId: string, originalIndex: number) => {
     playSound('click');
-    setSelectedOption(index);
+    setSelectedAnswers(prev => ({ ...prev, [qId]: originalIndex }));
   }
 
   const handleOptionSelectScroll = (qId: string, originalIndex: number) => {
     playSound('click');
-    setScrollAnswers(prev => ({ ...prev, [qId]: originalIndex }));
+    setSelectedAnswers(prev => ({ ...prev, [qId]: originalIndex }));
   }
 
   const handleSubmit = async (isAutoSubmit = false) => {
     if (isSubmitting) return;
 
-    let finalAnswers: { questionId: string; selectedIndex?: number; answerText?: string }[] = [];
-    
-    if (isWizard) {
-      const q = processedQuestions[currentIndex];
+    let missingCount = 0;
+    const finalAnswers = processedQuestions.map((q) => {
       if (q.question_type === 'essay') {
-        const ans = essayAnswers[q.id];
-        if (ans && (ans.text || ans.imageUrl)) {
-          finalAnswers = [
-            ...answers,
-            { questionId: q.id, answerText: JSON.stringify(ans) }
-          ];
-        } else {
-          finalAnswers = [...answers];
-        }
-      } else if (selectedOption !== null) {
-        const originalIndex = q.displayOptions[selectedOption].originalIndex;
-        finalAnswers = [
-          ...answers,
-          { questionId: q.id, selectedIndex: originalIndex }
-        ];
+         const ans = essayAnswers[q.id];
+         if (!ans || (!ans.text && !ans.imageUrl)) {
+             missingCount++;
+             return null;
+         }
+         return { questionId: q.id, answerText: JSON.stringify(ans) };
       } else {
-        finalAnswers = [...answers];
+         const selectedIndex = selectedAnswers[q.id];
+         if (selectedIndex === undefined) {
+             missingCount++;
+             return null;
+         }
+         return { questionId: q.id, selectedIndex };
       }
+    }).filter(ans => ans !== null) as { questionId: string; selectedIndex?: number; answerText?: string }[];
 
+    if (isWizard) {
       if (!isAutoSubmit && finalAnswers.length === 0) {
         setError('يرجى الإجابة على سؤال واحد على الأقل');
         playSound('pop');
         return;
       }
     } else {
-      // Check if all questions answered in scroll mode
-      let missingCount = 0;
-      finalAnswers = processedQuestions.map((q) => {
-        if (q.question_type === 'essay') {
-           const ans = essayAnswers[q.id];
-           if (!ans || (!ans.text && !ans.imageUrl)) {
-               missingCount++;
-               return { questionId: q.id, answerText: '' };
-           }
-           return { questionId: q.id, answerText: JSON.stringify(ans) };
-        } else {
-           const selectedIndex = scrollAnswers[q.id];
-           if (selectedIndex === undefined) {
-               missingCount++;
-               return { questionId: q.id };
-           }
-           return { questionId: q.id, selectedIndex };
-        }
-      }).filter(ans => ans.selectedIndex !== undefined || (ans.answerText !== undefined && ans.answerText !== ''));
-
       if (!isAutoSubmit && missingCount > 0) {
         setError('يرجى الإجابة على جميع الأسئلة قبل التسليم');
         playSound('pop');
@@ -270,6 +239,43 @@ export function SolveQuizClient({
 
   const question = isWizard ? processedQuestions[currentIndex] : null;
 
+  const handleNavClick = (index: number, qId?: string) => {
+    if (isWizard) {
+      playSound('click');
+      setCurrentIndex(index);
+      // Optional: If navigating back, might want to restore selectedOption if it was answered 
+      // but for simplicity, we just navigate to it. The state `wizardAnswers` tracks if they answered it.
+    } else if (qId) {
+      playSound('click');
+      const element = document.getElementById(`q-${qId}`);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }
+  };
+  
+  // Render the horizontal question navigation bar
+  const renderQuestionNavBar = (mode: 'wizard' | 'scroll') => (
+    <div className={styles.questionNavBar}>
+      {processedQuestions.map((q, idx) => {
+        const isCurrent = isWizard ? idx === currentIndex : false;
+        const answered = isQuestionAnswered(q.id, q.question_type, selectedAnswers, essayAnswers);
+        
+        return (
+          <button
+            key={q.id}
+            disabled={isSubmitting}
+            className={`${styles.questionNavBtn} ${isCurrent ? styles.active : ''} ${answered ? styles.answered : ''}`}
+            onClick={() => handleNavClick(idx, q.id)}
+            aria-label={`الذهاب لسؤال ${idx + 1}`}
+          >
+            {idx + 1}
+          </button>
+        );
+      })}
+    </div>
+  );
+
   // Wizard Mode UI
   if (isWizard && question) {
     return (
@@ -296,14 +302,18 @@ export function SolveQuizClient({
                 </div>
               )}
               <span style={{ fontWeight: 800, fontSize: '0.9rem', color: 'var(--muted-foreground)' }}>
-                {Math.round(((currentIndex + 1) / processedQuestions.length) * 100)}% تم الحل
+                {progressPercent}% تم الحل
               </span>
             </div>
             <div className={styles.progressBarContainer}>
               <div 
                 className={styles.progressBarFill}
-                style={{ width: `${((currentIndex + 1) / processedQuestions.length) * 100}%` }} 
+                style={{ width: `${progressPercent}%` }} 
               />
+            </div>
+            
+            <div style={{ marginTop: '1rem' }}>
+              {renderQuestionNavBar('wizard')}
             </div>
           </div>
         </div>
@@ -365,8 +375,8 @@ export function SolveQuizClient({
                       type="radio" 
                       name={`q-${question.id}`} 
                       className={styles.optionInput}
-                      checked={selectedOption === idx}
-                      onChange={() => handleOptionSelectWizard(idx)}
+                      checked={selectedAnswers[question.id] === opt.originalIndex}
+                      onChange={() => handleOptionSelectWizard(question.id, opt.originalIndex)}
                     />
                     <span className={styles.optionText}>{opt.text}</span>
                   </label>
@@ -385,7 +395,6 @@ export function SolveQuizClient({
               </Button>
               <Button 
                 onClick={currentIndex === processedQuestions.length - 1 ? () => handleSubmit() : handleNext} 
-                disabled={isSubmitting || (question.question_type === 'essay' ? (!essayAnswers[question.id]?.text && !essayAnswers[question.id]?.imageUrl) : selectedOption === null)}
                 className={styles.submitBtn}
               >
                 {isSubmitting ? 'جاري التسليم...' : (currentIndex === processedQuestions.length - 1 ? 'تسليم الواجب' : 'السؤال التالي')}
@@ -427,11 +436,16 @@ export function SolveQuizClient({
           </div>
         )}
         
+        <div style={{ marginTop: '1rem', marginBottom: '1rem', backgroundColor: 'var(--card)', padding: '1.5rem', borderRadius: '1.5rem', border: '1px solid var(--border)', boxShadow: 'var(--shadow-sm)' }}>
+          <h3 style={{ fontSize: '1.1rem', fontWeight: 900, marginBottom: '1rem', color: 'var(--foreground)' }}>أرقام الأسئلة للمراجعة والتنقل السريع:</h3>
+          {renderQuestionNavBar('scroll')}
+        </div>
+
         {processedQuestions.map((q, qIdx) => (
-          <Card key={q.id} className={styles.scrollQuestionCard}>
+          <Card key={q.id} id={`q-${q.id}`} className={styles.scrollQuestionCard}>
             <div className={styles.scrollQuestionHeader}>
               <span className={styles.scrollQuestionNum}>سؤال {qIdx + 1}</span>
-              {(scrollAnswers[q.id] !== undefined || (essayAnswers[q.id]?.text || essayAnswers[q.id]?.imageUrl)) && (
+              {isQuestionAnswered(q.id, q.question_type, selectedAnswers, essayAnswers) && (
                 <div className={styles.answeredBadge}>
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
                   تم الإجابة
@@ -475,7 +489,7 @@ export function SolveQuizClient({
                         type="radio" 
                         name={`q-${q.id}`} 
                         className={styles.optionInput}
-                        checked={scrollAnswers[q.id] === opt.originalIndex}
+                        checked={selectedAnswers[q.id] === opt.originalIndex}
                         onChange={() => handleOptionSelectScroll(q.id, opt.originalIndex)}
                       />
                       <span className={styles.optionText}>{opt.text}</span>

@@ -62,7 +62,7 @@ export default function SignupPage() {
               <CardHeader>
                 <CardTitle>إنشاء حساب معلم</CardTitle>
               </CardHeader>
-              <CardContent style={{ padding: '3.5rem' }}>
+              <CardContent className={styles.cardContent}>
                 <form className={styles.formContainer} onSubmit={handleSubmit}>
                    {error && <div className={styles.errorAlert}>⚠️ {error}</div>}
                    
