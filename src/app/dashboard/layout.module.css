@@ -9,6 +9,13 @@
   display: flex;
   flex-direction: column;
   min-width: 0;
+  margin-right: 17rem;
+}
+
+@media (max-width: 768px) {
+  .mainWrapper {
+    margin-right: 0;
+  }
 }
 
 .mainContent {

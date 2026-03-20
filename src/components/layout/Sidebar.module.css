@@ -1,8 +1,9 @@
 .sidebar {
   width: 17rem;
   height: 100vh;
-  position: sticky;
+  position: fixed;
   top: 0;
+  right: 0;
   border-left: 1px solid var(--border);
   background: var(--sidebar-bg); /* Use refined sidebar background */
   display: flex;

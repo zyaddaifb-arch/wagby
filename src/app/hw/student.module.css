@@ -1033,6 +1033,30 @@
   box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
 }
 
+.scrollNavSticky {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background-color: var(--glass-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  padding: 1.25rem 2rem;
+  margin-bottom: 2.5rem;
+  border-bottom: 1px solid var(--border);
+  box-shadow: 0 10px 30px -10px rgba(0,0,0,0.1);
+  margin-left: -2.5rem;
+  margin-right: -2.5rem;
+}
+
+@media (max-width: 768px) {
+  .scrollNavSticky {
+    padding: 1rem;
+    margin-left: -1rem;
+    margin-right: -1rem;
+    top: -1px; /* Ensure no gaps on mobile */
+  }
+}
+
 .scrollFooter {
   margin-top: 2rem; /* Added margin to separate from last question */
   padding: 3rem 2rem;

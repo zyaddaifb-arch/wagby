@@ -31,7 +31,7 @@ export default function RootLayout({
       <body className={`${tajawal.variable} antialiased`}>
         <ThemeProvider
           attribute="data-theme"
-          defaultTheme="light"
+          defaultTheme="dark"
           enableSystem={false}
         >
           {children}

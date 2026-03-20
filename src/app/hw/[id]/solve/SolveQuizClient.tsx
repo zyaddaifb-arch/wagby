@@ -494,8 +494,12 @@ export function SolveQuizClient({
           </div>
         )}
         
-        <div style={{ marginTop: '1rem', marginBottom: '1rem', backgroundColor: 'var(--card)', padding: '1.5rem', borderRadius: '1.5rem', border: '1px solid var(--border)', boxShadow: 'var(--shadow-sm)' }}>
-          <h3 style={{ fontSize: '1.1rem', fontWeight: 900, marginBottom: '1rem', color: 'var(--foreground)' }}>أرقام الأسئلة للمراجعة والتنقل السريع:</h3>
+        {/* Sticky Question Navigation for Scroll Mode */}
+        <div className={styles.scrollNavSticky}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+            <h3 style={{ fontSize: '1rem', fontWeight: 900, color: 'var(--primary)' }}>التنقل السريع بين الأسئلة:</h3>
+            <span style={{ fontSize: '0.85rem', fontWeight: 700, opacity: 0.8 }}>({answeredCount}/{processedQuestions.length}) تم الحل</span>
+          </div>
           {renderQuestionNavBar('scroll')}
         </div>
 
