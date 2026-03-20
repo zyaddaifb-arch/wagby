@@ -8,6 +8,7 @@ import styles from '../student.module.css';
 import { playSound } from '@/utils/audio';
 import { motion } from 'framer-motion';
 import { User, Phone, ArrowLeft } from 'lucide-react';
+import { checkStudentAttempt } from './actions';
 
 export function StudentStartForm({ 
   shareCode,
@@ -43,15 +44,29 @@ export function StudentStartForm({
   const isPhoneValid = !isPhoneRequired || phone.length === 11;
   const isParentPhoneValid = !isParentPhoneRequired || parentPhone.length === 11;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (name.trim() && isPhoneValid && isParentPhoneValid) {
       setIsSubmitting(true);
-      playSound('success');
-      let url = `/hw/${shareCode}/solve?name=${encodeURIComponent(name.trim())}`;
-      if (isPhoneRequired) url += `&phone=${encodeURIComponent(phone)}`;
-      if (isParentPhoneRequired) url += `&parentPhone=${encodeURIComponent(parentPhone)}`;
-      router.push(url);
+      
+      try {
+        // Check if student should be redirected to results
+        const check = await checkStudentAttempt(shareCode, name.trim(), phone);
+        
+        if (!check.canAttempt && check.lastSubmissionId) {
+          router.push(`/hw/${shareCode}/result?sub=${check.lastSubmissionId}`);
+          return;
+        }
+
+        playSound('success');
+        let url = `/hw/${shareCode}/solve?name=${encodeURIComponent(name.trim())}`;
+        if (isPhoneRequired) url += `&phone=${encodeURIComponent(phone)}`;
+        if (isParentPhoneRequired) url += `&parentPhone=${encodeURIComponent(parentPhone)}`;
+        router.push(url);
+      } catch (err) {
+        console.error('Error starting homework:', err);
+        setIsSubmitting(false);
+      }
     }
   };
 

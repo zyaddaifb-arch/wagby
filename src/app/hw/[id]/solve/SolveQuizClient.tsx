@@ -13,13 +13,15 @@ import { ImageUploader } from '@/app/dashboard/create/ImageUploader';
 const isQuestionAnswered = (
   qId: string, 
   qType: string, 
-  answersState: Record<string, any>, 
-  essayState: Record<string, any>
+  answersState: Record<string, number[]>, 
+  essayState: Record<string, any>,
+  correctCount: number = 1
 ) => {
   if (qType === 'essay') {
     return !!(essayState[qId]?.text || essayState[qId]?.imageUrl);
   }
-  return answersState[qId] !== undefined;
+  const ans = answersState[qId] || [];
+  return ans.length === correctCount;
 };
 
 export function SolveQuizClient({ 
@@ -39,7 +41,8 @@ export function SolveQuizClient({
     question_text: string, 
     options: string[],
     question_type: 'multiple_choice' | 'true_false' | 'essay',
-    image_url: string | null
+    image_url: string | null,
+    correct_count?: number
   }[];
   settings?: {
     randomizeQuestions?: boolean;
@@ -100,8 +103,8 @@ export function SolveQuizClient({
   // State for Wizard mode
   const [currentIndex, setCurrentIndex] = useState(0);
   
-  // Unified State for multiple choice questions (mapping questionId to selected original index)
-  const [selectedAnswers, setSelectedAnswers] = useState<Record<string, number>>({});
+  // Unified State for multiple choice questions (mapping questionId to selected original indexes)
+  const [selectedAnswers, setSelectedAnswers] = useState<Record<string, number[]>>({});
   
   // State for Essay questions
   const [essayAnswers, setEssayAnswers] = useState<Record<string, { text?: string; imageUrl?: string | null }>>({});
@@ -154,49 +157,86 @@ export function SolveQuizClient({
     }
   };
 
-  const handleOptionSelectWizard = (qId: string, originalIndex: number) => {
+  const handleOptionSelectWizard = (qId: string, originalIndex: number, qType: string, correctCount: number = 1) => {
     playSound('click');
-    setSelectedAnswers(prev => ({ ...prev, [qId]: originalIndex }));
+    
+    setSelectedAnswers(prev => {
+      if (qType === 'true_false') {
+        return { ...prev, [qId]: [originalIndex] };
+      } else {
+        const current = prev[qId] || [];
+        const isSelected = current.includes(originalIndex);
+        
+        if (!isSelected && current.length >= correctCount) {
+          return prev;
+        }
+
+        const next = isSelected 
+          ? current.filter(idx => idx !== originalIndex)
+          : [...current, originalIndex].sort((a, b) => a - b);
+        
+        return { ...prev, [qId]: next };
+      }
+    });
   }
 
-  const handleOptionSelectScroll = (qId: string, originalIndex: number) => {
+  const handleOptionSelectScroll = (qId: string, originalIndex: number, qType: string, correctCount: number = 1) => {
     playSound('click');
-    setSelectedAnswers(prev => ({ ...prev, [qId]: originalIndex }));
+    setSelectedAnswers(prev => {
+      if (qType === 'true_false') {
+        return { ...prev, [qId]: [originalIndex] };
+      }
+      const current = prev[qId] || [];
+      const isSelected = current.includes(originalIndex);
+
+      if (!isSelected && current.length >= correctCount) {
+        // Already reached maximum allowed selections
+        return prev;
+      }
+
+      const next = isSelected 
+        ? current.filter(idx => idx !== originalIndex)
+        : [...current, originalIndex].sort((a, b) => a - b);
+      return { ...prev, [qId]: next };
+    });
   }
 
-  const handleSubmit = async (isAutoSubmit = false) => {
+  const handleSubmit = async (isAutoSubmit = false, overrideAnswers?: Record<string, number[]>) => {
     if (isSubmitting) return;
 
-    let missingCount = 0;
+    const currentAnswersState = overrideAnswers || selectedAnswers;
     const finalAnswers = processedQuestions.map((q) => {
       if (q.question_type === 'essay') {
          const ans = essayAnswers[q.id];
          if (!ans || (!ans.text && !ans.imageUrl)) {
-             missingCount++;
              return null;
          }
          return { questionId: q.id, answerText: JSON.stringify(ans) };
       } else {
-         const selectedIndex = selectedAnswers[q.id];
-         if (selectedIndex === undefined) {
-             missingCount++;
+         const selectedIndexes = currentAnswersState[q.id] || [];
+         const required = q.correct_count || 1;
+         if (selectedIndexes.length !== required) {
              return null;
          }
-         return { questionId: q.id, selectedIndex };
+         return { questionId: q.id, selectedIndexes };
       }
-    }).filter(ans => ans !== null) as { questionId: string; selectedIndex?: number; answerText?: string }[];
+    }).filter(ans => ans !== null) as { questionId: string; selectedIndexes?: number[]; answerText?: string }[];
 
-    if (isWizard) {
-      if (!isAutoSubmit && finalAnswers.length === 0) {
-        setError('يرجى الإجابة على سؤال واحد على الأقل');
-        playSound('pop');
-        return;
-      }
-    } else {
-      if (!isAutoSubmit && missingCount > 0) {
-        setError('يرجى الإجابة على جميع الأسئلة قبل التسليم');
-        playSound('pop');
-        return;
+    if (!isAutoSubmit) {
+      if (isWizard) {
+        if (finalAnswers.length === 0) {
+          setError('يرجى الإجابة على سؤال واحد على الأقل مع اختيار العدد المطلوب من الإجابات');
+          playSound('pop');
+          return;
+        }
+      } else {
+        const totalNonEssay = processedQuestions.filter(q => q.question_type !== 'essay').length;
+        const totalEssay = processedQuestions.filter(q => q.question_type === 'essay').length;
+        if (finalAnswers.length < (totalNonEssay + totalEssay)) {
+          setError('يرجى إكمال جميع الأسئلة واختيار العدد الصحيح لكل سؤال قبل التسليم');
+          playSound('pop');
+          return;
+        }
       }
     }
     
@@ -227,14 +267,8 @@ export function SolveQuizClient({
     }
   };
 
-  if (!isReady) {
-    return (
-      <div style={{ minHeight: '80vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '2rem' }}>
-        <div style={{ width: '60px', height: '60px', border: '5px solid rgba(59, 130, 246, 0.1)', borderTopColor: 'var(--primary)', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
-        <div style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--primary)', letterSpacing: '0.05em' }}>جاري تحضير الأسئلة...</div>
-        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-      </div>
-    );
+  if (!isReady || (questions.length > 0 && processedQuestions.length === 0)) {
+    return null;
   }
 
   const question = isWizard ? processedQuestions[currentIndex] : null;
@@ -259,7 +293,7 @@ export function SolveQuizClient({
     <div className={styles.questionNavBar}>
       {processedQuestions.map((q, idx) => {
         const isCurrent = isWizard ? idx === currentIndex : false;
-        const answered = isQuestionAnswered(q.id, q.question_type, selectedAnswers, essayAnswers);
+        const answered = isQuestionAnswered(q.id, q.question_type, selectedAnswers, essayAnswers, q.correct_count);
         
         return (
           <button
@@ -341,9 +375,23 @@ export function SolveQuizClient({
               </div>
             )}
 
-            <h2 className={styles.questionText}>
-              {question.question_text}
-            </h2>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', gap: '1rem' }}>
+              <h2 className={styles.questionText} style={{ fontSize: '1.25rem', marginBottom: 0 }}>{question.question_text}</h2>
+              {question.question_type === 'multiple_choice' && question.correct_count > 1 && (
+                <div style={{ 
+                  backgroundColor: 'rgba(52, 211, 153, 0.1)', 
+                  color: '#059669', 
+                  padding: '0.4rem 0.75rem', 
+                  borderRadius: '0.75rem', 
+                  fontSize: '0.85rem', 
+                  fontWeight: 800,
+                  whiteSpace: 'nowrap',
+                  border: '1px solid rgba(52, 211, 153, 0.2)'
+                }}>
+                  اختر {question.correct_count} إجابات
+                </div>
+              )}
+            </div>
 
             {question.question_type === 'essay' ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -369,18 +417,26 @@ export function SolveQuizClient({
               </div>
             ) : (
               <div className={styles.optionsGrid}>
-                {question.displayOptions.map((opt: { text: string; originalIndex: number }, idx: number) => (
-                  <label key={idx} className={styles.optionLabel}>
-                    <input 
-                      type="radio" 
-                      name={`q-${question.id}`} 
-                      className={styles.optionInput}
-                      checked={selectedAnswers[question.id] === opt.originalIndex}
-                      onChange={() => handleOptionSelectWizard(question.id, opt.originalIndex)}
-                    />
+                {question.displayOptions.map((opt: { text: string; originalIndex: number }, idx: number) => {
+                  const isChecked = selectedAnswers[question.id]?.includes(opt.originalIndex);
+                  return (
+                  <div 
+                    key={idx} 
+                    className={`${styles.optionLabel} ${isChecked ? styles.selected : ''}`}
+                    onClick={() => handleOptionSelectWizard(question.id, opt.originalIndex, question.question_type, question.correct_count)}
+                  >
+                    <div className={styles.optionLetter}>
+                      {isChecked ? (
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
+                          <polyline points="20 6 9 17 4 12"/>
+                        </svg>
+                      ) : (
+                        <span>{['أ', 'ب', 'ج', 'د', 'هـ', 'و', 'ز', 'ح'][idx] || (idx + 1)}</span>
+                      )}
+                    </div>
                     <span className={styles.optionText}>{opt.text}</span>
-                  </label>
-                ))}
+                  </div>
+                )})}
               </div>
             )}
 
@@ -445,7 +501,7 @@ export function SolveQuizClient({
           <Card key={q.id} id={`q-${q.id}`} className={styles.scrollQuestionCard}>
             <div className={styles.scrollQuestionHeader}>
               <span className={styles.scrollQuestionNum}>سؤال {qIdx + 1}</span>
-              {isQuestionAnswered(q.id, q.question_type, selectedAnswers, essayAnswers) && (
+              {isQuestionAnswered(q.id, q.question_type, selectedAnswers, essayAnswers, q.correct_count) && (
                 <div className={styles.answeredBadge}>
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
                   تم الإجابة
@@ -458,7 +514,23 @@ export function SolveQuizClient({
                   <img src={q.image_url} alt="صورة السؤال" />
                 </div>
               )}
-              <h2 className={styles.scrollQuestionText}>{q.question_text}</h2>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', gap: '1rem' }}>
+                  <h2 className={styles.scrollQuestionText} style={{ fontSize: '1.25rem', marginBottom: 0 }}>{q.question_text}</h2>
+                  {q.question_type === 'multiple_choice' && q.correct_count > 1 && (
+                    <div style={{ 
+                      backgroundColor: 'rgba(52, 211, 153, 0.1)', 
+                      color: '#059669', 
+                      padding: '0.4rem 0.75rem', 
+                      borderRadius: '0.75rem', 
+                      fontSize: '0.85rem', 
+                      fontWeight: 800,
+                      whiteSpace: 'nowrap',
+                      border: '1px solid rgba(52, 211, 153, 0.2)'
+                    }}>
+                      اختر {q.correct_count} إجابات
+                    </div>
+                  )}
+                </div>
               {q.question_type === 'essay' ? (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1rem' }}>
                   <textarea
@@ -483,18 +555,26 @@ export function SolveQuizClient({
                 </div>
               ) : (
                 <div className={styles.optionsGrid}>
-                  {q.displayOptions.filter((o: { text: string; originalIndex: number }) => o.text.trim() !== '').map((opt: { text: string; originalIndex: number }, oIdx: number) => (
-                    <label key={oIdx} className={styles.optionLabel}>
-                      <input 
-                        type="radio" 
-                        name={`q-${q.id}`} 
-                        className={styles.optionInput}
-                        checked={selectedAnswers[q.id] === opt.originalIndex}
-                        onChange={() => handleOptionSelectScroll(q.id, opt.originalIndex)}
-                      />
+                  {q.displayOptions.filter((o: { text: string; originalIndex: number }) => o.text.trim() !== '').map((opt: { text: string; originalIndex: number }, oIdx: number) => {
+                    const isChecked = selectedAnswers[q.id]?.includes(opt.originalIndex);
+                    return (
+                    <div 
+                      key={oIdx} 
+                      className={`${styles.optionLabel} ${isChecked ? styles.selected : ''}`}
+                      onClick={() => handleOptionSelectScroll(q.id, opt.originalIndex, q.question_type, q.correct_count)}
+                    >
+                      <div className={styles.optionLetter}>
+                        {isChecked ? (
+                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
+                            <polyline points="20 6 9 17 4 12"/>
+                          </svg>
+                        ) : (
+                          <span>{['أ', 'ب', 'ج', 'د', 'هـ', 'و', 'ز', 'ح'][oIdx] || (oIdx + 1)}</span>
+                        )}
+                      </div>
                       <span className={styles.optionText}>{opt.text}</span>
-                    </label>
-                  ))}
+                    </div>
+                  )})}
                 </div>
               )}
             </CardContent>

@@ -16,7 +16,7 @@ interface Question {
   id: string;
   text: string;
   options: string[];
-  correctOption: number;
+  correctOptions: number[];
   explanation: string;
   type: 'multiple_choice' | 'true_false' | 'essay';
   imageUrl: string | null;
@@ -43,6 +43,7 @@ function CreateForm() {
   const [submissionCount, setSubmissionCount] = useState<number>(0);
   const [randomizeQuestions, setRandomizeQuestions] = useState(false);
   const [randomizeAnswers, setRandomizeAnswers] = useState(false);
+  const [hideResult, setHideResult] = useState(false);
   const [layout, setLayout] = useState<'wizard' | 'scroll'>('wizard');
   const [showPreview, setShowPreview] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -57,6 +58,7 @@ function CreateForm() {
           if (settings) {
             setRandomizeQuestions(settings.randomizeQuestions ?? false);
             setRandomizeAnswers(settings.randomizeAnswers ?? false);
+            setHideResult(settings.showResult === 'hidden');
             setLayout(settings.layout ?? 'wizard');
             setMaxAttempts(settings.maxAttempts ?? 1);
           }
@@ -78,16 +80,27 @@ function CreateForm() {
           setSubmissionCount(hw.submissionCount || 0);
           setRandomizeQuestions(hw.randomize_questions || false);
           setRandomizeAnswers(hw.randomize_answers || false);
+          setHideResult(hw.hide_result || false);
           setLayout(hw.layout || 'wizard');
           if (hw.questions && hw.questions.length > 0) {
               const mappedQuestions = (hw.questions as Record<string, unknown>[]).sort((a,b)=>Number(a.order_index) - Number(b.order_index)).map(q => {
-                  const options = [String(q.option_a), String(q.option_b), String(q.option_c), String(q.option_d)];
-                  const qMap: Record<string, number> = { 'a': 0, 'b': 1, 'c': 2, 'd': 3 };
+                  const options = [
+                    String(q.option_a), String(q.option_b), String(q.option_c), String(q.option_d),
+                    String((q as any).option_e || ''), String((q as any).option_f || ''), String((q as any).option_g || ''), String((q as any).option_h || '')
+                  ];
+                  const qMap: Record<string, number> = { 'a': 0, 'b': 1, 'c': 2, 'd': 3, 'e': 4, 'f': 5, 'g': 6, 'h': 7 };
+                  
+                  // Handle multiple correct options stored as comma-separated string
+                  const correctAnswersStr = String(q.correct_answer || '');
+                  const correctOptions = correctAnswersStr.includes(',') 
+                    ? correctAnswersStr.split(',').filter(val => val in qMap).map(val => qMap[val])
+                    : (correctAnswersStr in qMap ? [qMap[correctAnswersStr]] : []);
+
                   return {
                       id: String(q.id),
                       text: String(q.question_text),
                       options,
-                      correctOption: qMap[String(q.correct_answer)] ?? 0,
+                      correctOptions: correctOptions.length > 0 ? correctOptions : (q.correct_answer === 'essay' ? [] : [qMap[String(q.correct_answer)] ?? 0]),
                       explanation: q.explanation ? String(q.explanation) : '',
                       type: (q.question_type as 'multiple_choice' | 'true_false' | 'essay') || 'multiple_choice',
                       imageUrl: q.image_url ? String(q.image_url) : null,
@@ -108,14 +121,14 @@ function CreateForm() {
 
   const addQuestion = (type: 'multiple_choice' | 'true_false' | 'essay' = 'multiple_choice') => {
     playSound('click');
-    let options = ['', '', '', ''];
+    let options = ['', '', '', '', '', '', '', ''];
     if (type === 'true_false') {
-      options = ['صح', 'خطأ', '', ''];
+      options = ['صح', 'خطأ', '', '', '', '', '', ''];
     }
     
     setQuestions([
       ...questions,
-      { id: Date.now().toString(), text: '', options, correctOption: -1, explanation: '', type, imageUrl: null, points: defaultPoints }
+      { id: Date.now().toString(), text: '', options, correctOptions: [], explanation: '', type, imageUrl: null, points: defaultPoints }
     ]);
   };
 
@@ -145,9 +158,23 @@ function CreateForm() {
     }));
   };
 
-  const setCorrectOption = (qId: string, optIndex: number) => {
+  const toggleCorrectOption = (qId: string, optIndex: number) => {
     playSound('click');
-    setQuestions(questions.map(q => q.id === qId ? { ...q, correctOption: optIndex } : q));
+    setQuestions(questions.map(q => {
+      if (q.id === qId) {
+        if (q.type === 'true_false') {
+          return { ...q, correctOptions: [optIndex] };
+        }
+        
+        const isAlreadySelected = q.correctOptions.includes(optIndex);
+        const newCorrectOptions = isAlreadySelected
+          ? q.correctOptions.filter(idx => idx !== optIndex)
+          : [...q.correctOptions, optIndex].sort((a, b) => a - b);
+          
+        return { ...q, correctOptions: newCorrectOptions };
+      }
+      return q;
+    }));
   };
 
   const updateExplanation = (id: string, explanation: string) => {
@@ -159,9 +186,9 @@ function CreateForm() {
     setQuestions(questions.map(q => {
       if (q.id === id) {
         if (type === 'true_false') {
-          return { ...q, type, options: ['صح', 'خطأ', '', ''], correctOption: -1 };
+          return { ...q, type, options: ['صح', 'خطأ', '', '', '', '', '', ''], correctOptions: [] };
         }
-        return { ...q, type, options: ['', '', '', ''], correctOption: -1 };
+        return { ...q, type, options: ['', '', '', '', '', '', '', ''], correctOptions: [] };
       }
       return q;
     }));
@@ -181,14 +208,17 @@ function CreateForm() {
 
         if (!q.text.trim()) {
             qError = 'يرجى إدخال نص السؤال';
-        } else if (q.type !== 'essay' && q.correctOption === -1) {
-            qError = 'يرجى اختيار الإجابة الصحيحة';
+        } else if (q.type !== 'essay' && q.correctOptions.length === 0) {
+            qError = 'يرجى اختيار إجابة واحدة صحيحة على الأقل';
         } else if (q.type !== 'essay') {
             const filledOptions = q.options.filter(opt => opt.trim() !== '');
             if (q.type === 'multiple_choice' && filledOptions.length < 2) {
                 qError = 'يرجى إدخال خيارين على الأقل';
-            } else if (!q.options[q.correctOption].trim()) {
-                qError = 'الإجابة المختارة فارغة';
+            } else {
+                const hasEmptyCorrectOption = q.correctOptions.some(idx => !q.options[idx].trim());
+                if (hasEmptyCorrectOption) {
+                    qError = 'يوجد إجابة مختارة فارغة';
+                }
             }
         }
 
@@ -273,10 +303,12 @@ function CreateForm() {
         isPublished,
         randomizeQuestions,
         randomizeAnswers,
+        hideResult,
         layout,
         questions: questions.map(q => ({
           ...q,
-          questionType: q.type
+          questionType: q.type,
+          correctOptions: q.correctOptions
         }))
     });
 
@@ -490,7 +522,6 @@ function CreateForm() {
                 }} />
               </div>
             </div>
-
             {/* Randomize Answers Toggle */}
             <div 
               style={{ 
@@ -539,6 +570,60 @@ function CreateForm() {
                   position: 'absolute', 
                   top: '3px', 
                   right: randomizeAnswers ? '3px' : '27px',
+                  transition: 'right 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                  boxShadow: '0 2px 5px rgba(0,0,0,0.3)'
+                }} />
+              </div>
+            </div>
+
+            {/* Hide Results Toggle */}
+            <div 
+              style={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'space-between',
+                padding: '1.5rem',
+                borderRadius: '1.25rem',
+                backgroundColor: hideResult ? 'rgba(239, 68, 68, 0.08)' : 'rgba(255,255,255,0.02)',
+                border: '2px solid',
+                borderColor: hideResult ? 'var(--danger)' : 'var(--border)',
+                cursor: 'pointer',
+                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                boxShadow: hideResult ? '0 10px 25px rgba(239, 68, 68, 0.1)' : 'none',
+              }} 
+              onClick={() => setHideResult(!hideResult)}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                <div style={{ 
+                  padding: '10px', 
+                  borderRadius: '12px', 
+                  backgroundColor: hideResult ? 'var(--danger)' : 'rgba(0,0,0,0.1)',
+                  color: hideResult ? 'white' : 'var(--muted-foreground)',
+                  transition: 'all 0.3s'
+                }}>
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                  <span style={{ fontWeight: 900, fontSize: '1.1rem', color: hideResult ? 'var(--danger)' : 'inherit' }}>إخفاء النتيجة</span>
+                  <span style={{ fontSize: '0.85rem', color: 'var(--muted-foreground)' }}>منع الطالب من رؤية الدرجة بعد الحل</span>
+                </div>
+              </div>
+              <div style={{ 
+                width: '52px', 
+                height: '28px', 
+                backgroundColor: hideResult ? 'var(--danger)' : 'rgba(255,255,255,0.1)', 
+                borderRadius: '20px', 
+                position: 'relative',
+                transition: 'background-color 0.3s'
+              }}>
+                <div style={{ 
+                  width: '22px', 
+                  height: '22px', 
+                  backgroundColor: 'white', 
+                  borderRadius: '50%', 
+                  position: 'absolute', 
+                  top: '3px', 
+                  right: hideResult ? '3px' : '27px',
                   transition: 'right 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                   boxShadow: '0 2px 5px rgba(0,0,0,0.3)'
                 }} />
@@ -733,27 +818,75 @@ function CreateForm() {
                 <div className={styles.optionsList}>
                   {q.options.map((optText, oIndex) => {
                     if (q.type === 'true_false' && oIndex > 1) return null;
+                    
+                    // Logic to decide if this option should be visible:
+                    // 1. First 4 options are always visible for multiple choice
+                    // 2. Options 5-8 are visible if they have text OR if the previous one has text
+                    const isAlwaysVisible = oIndex < 4;
+                    const isVisibleExtension = oIndex >= 4 && (optText.trim() !== '' || (oIndex > 0 && q.options[oIndex-1].trim() !== ''));
+                    
+                    if (q.type === 'multiple_choice' && !isAlwaysVisible && !isVisibleExtension) return null;
+
+                    const isCorrect = q.correctOptions.includes(oIndex);
                     return (
                       <div key={oIndex} className={styles.optionRow}>
-                        <input 
-                          type="radio" 
-                          name={`correct-${q.id}`} 
-                          className={styles.radioInput}
-                          checked={q.correctOption === oIndex}
-                          onChange={() => setCorrectOption(q.id, oIndex)}
-                          title="اختر كإجابة صحيحة"
-                        />
+                         <div 
+                          className={`${styles.radioInput} ${isCorrect ? styles.checked : ''}`}
+                          onClick={() => toggleCorrectOption(q.id, oIndex)}
+                          style={{ 
+                            width: '24px', 
+                            height: '24px', 
+                            borderRadius: q.type === 'true_false' ? '50%' : '6px',
+                            border: '2px solid var(--primary)',
+                            backgroundColor: isCorrect ? 'var(--primary)' : 'transparent',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            transition: 'all 0.2s'
+                          }}
+                        >
+                          {isCorrect && (
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
+                              <polyline points="20 6 9 17 4 12"/>
+                            </svg>
+                          )}
+                        </div>
                         <Input 
+                          id={`q-${q.id}-opt-${oIndex}`}
                           placeholder={q.type === 'true_false' ? (oIndex === 0 ? 'صح' : 'خطأ') : `الخيار ${oIndex + 1}`} 
                           className={styles.optionInput} 
                           value={optText}
                           onChange={(e) => updateOptionText(q.id, oIndex, e.target.value)}
-                          required
+                          required={oIndex < 2} // First 2 are usually required for multiple choice
                           disabled={q.type === 'true_false'}
                         />
                       </div>
                     );
                   })}
+                  {q.type === 'multiple_choice' && q.options.filter(opt => opt.trim() !== '').length < 8 && (
+                    <button 
+                      type="button"
+                      className={styles.addOptionBtn}
+                      onClick={() => {
+                        playSound('click');
+                        const nextIndex = q.options.findIndex((opt, idx) => idx >= 4 && opt.trim() === '');
+                        if (nextIndex !== -1) {
+                          const nextInput = document.getElementById(`q-${q.id}-opt-${nextIndex}`);
+                          if (nextInput) nextInput.focus();
+                        }
+                      }}
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                      إضافة خيار إضافي
+                    </button>
+                  )}
+                  {q.type === 'multiple_choice' && (
+                    <div style={{ fontSize: '0.8rem', color: 'var(--muted-foreground)', marginTop: '0.75rem', marginRight: '32px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                      <span>يمكنك اختيار أكثر من إجابة صحيحة</span>
+                    </div>
+                  )}
                 </div>
               )}
 

@@ -10,12 +10,13 @@ export async function getHomeworkByShareCode(shareCode: string) {
       id, title, teacher_id, is_published,
       randomize_questions,
       randomize_answers,
+      hide_result,
       layout,
       time_limit,
       max_attempts,
       total_students,
       profiles (full_name, settings),
-      questions (id, question_text, option_a, option_b, option_c, option_d, order_index, explanation, question_type, image_url, points)
+      questions (id, question_text, option_a, option_b, option_c, option_d, option_e, option_f, option_g, option_h, order_index, explanation, question_type, image_url, points, correct_answer)
     `)
     .eq('share_code', shareCode.trim().toUpperCase())
     .filter('questions.order_index', 'gte', 0)
@@ -29,11 +30,15 @@ export async function getHomeworkByShareCode(shareCode: string) {
   const questions = (data.questions as Record<string, unknown>[]).sort((a, b) => Number(a.order_index) - Number(b.order_index)).map((q) => ({
     id: String(q.id),
     question_text: String(q.question_text),
-    options: [String(q.option_a), String(q.option_b), String(q.option_c), String(q.option_d)],
+    options: [
+      String(q.option_a), String(q.option_b), String(q.option_c), String(q.option_d),
+      String((q as any).option_e || ''), String((q as any).option_f || ''), String((q as any).option_g || ''), String((q as any).option_h || '')
+    ],
     explanation: q.explanation ? String(q.explanation) : null,
     question_type: (q.question_type as 'multiple_choice' | 'true_false' | 'essay') || 'multiple_choice',
     image_url: q.image_url ? String(q.image_url) : null,
     points: typeof q.points === 'number' ? q.points : 1,
+    correct_count: q.question_type === 'essay' ? 0 : (String(q.correct_answer || '').split(',').length || 1)
   }))
 
   return {
@@ -79,7 +84,7 @@ export type SubmissionInput = {
   studentName: string;
   studentPhone: string;
   parentPhone?: string;
-  answers: { questionId: string; selectedIndex?: number; answerText?: string }[];
+  answers: { questionId: string; selectedIndexes?: number[]; answerText?: string }[];
   duration?: number;
 }
 
@@ -110,7 +115,7 @@ export async function submitHomework(data: SubmissionInput) {
     return { error: 'الواجب غير موجود أو غير منشور' }
   }
 
-  const optionMap = ['a', 'b', 'c', 'd']
+  const optionMap = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']
   let totalScore = 0
 
   // Check answers
@@ -134,8 +139,13 @@ export async function submitHomework(data: SubmissionInput) {
       selectedOption = null; // Important: set to NULL to avoid constraint violation
       isCorrect = false; // Graded manually later
       pointsAwarded = null; // Pending grading
-    } else if (ans.selectedIndex !== undefined) {
-      selectedOption = optionMap[ans.selectedIndex]
+    } else if (ans.selectedIndexes !== undefined && ans.selectedIndexes.length > 0) {
+      selectedOption = ans.selectedIndexes
+        .sort((a, b) => a - b)
+        .map(idx => (optionMap as any)[idx])
+        .join(',')
+      
+      // Compare sorted comma-separated strings
       isCorrect = question ? question.correct_answer === selectedOption : false
       
       const qPoints = question?.points || 1;
@@ -203,7 +213,7 @@ export async function getSubmissionResult(submissionId: string) {
     .from('submissions')
     .select(`
       *,
-      homeworks (title, teacher_id, profiles(full_name))
+      homeworks (title, teacher_id, hide_result, profiles(full_name))
     `)
     .eq('id', submissionId)
     .single()
@@ -227,8 +237,9 @@ export async function getSubmissionResult(submissionId: string) {
     ...data,
     rank,
     totalStudents: rankings?.length || 1,
-    homeworkTitle: String((data.homeworks as unknown as Record<string, unknown>).title),
-    teacherName: String(((data.homeworks as unknown as Record<string, unknown>).profiles as unknown as Record<string, unknown>).full_name),
+    homeworkTitle: String((data.homeworks as any).title),
+    teacherName: String((data.homeworks as any).profiles?.full_name),
+    hideResult: !!(data.homeworks as any).hide_result,
     answers: await supabase
       .from('answers')
       .select(`
@@ -239,6 +250,10 @@ export async function getSubmissionResult(submissionId: string) {
           option_b,
           option_c,
           option_d,
+          option_e,
+          option_f,
+          option_g,
+          option_h,
           correct_answer,
           explanation,
           question_type,
@@ -249,4 +264,48 @@ export async function getSubmissionResult(submissionId: string) {
       .eq('submission_id', submissionId)
       .then(res => res.data || [])
   }
+}
+
+export async function checkStudentAttempt(shareCode: string, name: string, phone: string) {
+  const supabase = await createClient()
+  
+  // 1. Get homework ID and max_attempts
+  const { data: hw, error: hwError } = await supabase
+    .from('homeworks')
+    .select('id, max_attempts')
+    .eq('share_code', shareCode.trim().toUpperCase())
+    .single()
+
+  if (hwError || !hw) return { canAttempt: true }
+
+  // Check how many submissions the student has
+  let query = supabase
+    .from('submissions')
+    .select('id', { count: 'exact' })
+    .eq('homework_id', hw.id)
+    .order('submitted_at', { ascending: false })
+
+  if (phone && phone.trim()) {
+    query = query.eq('student_phone', phone.trim())
+  } else {
+    query = query.eq('student_name', name.trim())
+  }
+
+  const { data: submissions, count } = await query
+
+  const attemptCount = count || 0
+  const lastSubmissionId = submissions?.[0]?.id
+
+  // Determine if they should be redirected to results
+  // If max_attempts is exactly 1, and they have at least 1 attempt, redirect them.
+  if (hw.max_attempts === 1 && attemptCount >= 1) {
+    return { canAttempt: false, lastSubmissionId }
+  }
+
+  // If they have multiple attempts allowed but hit the limit, 
+  // currently we let them proceed to the solve page where they will get a "limit reached" error.
+  // OR we can also redirect them here. But the user specifically mentioned the "once" case.
+  // "ده لو هو عدد المحاولات مرة واحدة يعني. لكن لو عدد المحاولات كتير، دخلوا على طول"
+  
+  return { canAttempt: true }
 }

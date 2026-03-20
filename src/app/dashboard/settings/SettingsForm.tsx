@@ -9,8 +9,9 @@ import { playSound } from '@/utils/audio';
 import styles from './settings.module.css';
 import { updateProfile, UserSettings, deleteAccount, updatePassword } from './actions';
 import { logout } from '@/app/auth/actions';
-import { LogOut, Trash2, AlertTriangle, Key } from 'lucide-react';
+import { LogOut, Trash2, AlertTriangle, Key, Sun, Moon } from 'lucide-react';
 import { Modal } from '@/components/ui/Modal';
+import { useTheme } from 'next-themes';
 
 interface SettingsFormProps {
   initialData: any;
@@ -45,6 +46,9 @@ export function SettingsForm({ initialData }: SettingsFormProps) {
     subject: initialData?.subject || '',
     settings: { ...DEFAULT_SETTINGS, ...(initialData?.settings || {}) } as UserSettings,
   });
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
 
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
   const [passwordData, setPasswordData] = useState({
@@ -164,6 +168,7 @@ export function SettingsForm({ initialData }: SettingsFormProps) {
         <CardContent className={styles.navMenu}>
           {[
             { id: 'account', label: 'الحساب', icon: '👤' },
+            { id: 'appearance', label: 'المظهر', icon: '✨' },
             { id: 'homework', label: 'سلوك الواجبات', icon: '📝' },
             { id: 'privacy', label: 'الخصوصية والأمان', icon: '🔒' },
           ].map((item) => (
@@ -248,6 +253,34 @@ export function SettingsForm({ initialData }: SettingsFormProps) {
                   >
                     <LogOut size={18} /> تسجيل الخروج
                   </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+        {/* Appearance Section */}
+        <div id="appearance" className={styles.section}>
+          <Card className={styles.sectionCard}>
+            <CardContent className={styles.sectionContent}>
+              <h2 className={styles.sectionTitle}>مظهر المنصة</h2>
+              <div className={styles.fieldGroup}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '1rem', backgroundColor: 'var(--background)', borderRadius: '1rem', border: '1px solid var(--border)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    {theme === 'dark' ? <Moon size={20} className="text-primary" /> : <Sun size={20} className="text-primary" />}
+                    <div>
+                      <p style={{ fontWeight: 800, margin: 0 }}>الوضع {theme === 'dark' ? 'الليلي' : 'النهاري'}</p>
+                      <p style={{ fontSize: '0.85rem', color: 'var(--muted-foreground)', margin: 0 }}>تغيير مظهر لوحة التحكم</p>
+                    </div>
+                  </div>
+                  {mounted && (
+                    <Switch 
+                      checked={theme === 'dark'} 
+                      onChange={(isDark) => {
+                        setTheme(isDark ? 'dark' : 'light');
+                        playSound('click');
+                      }} 
+                    />
+                  )}
                 </div>
               </div>
             </CardContent>

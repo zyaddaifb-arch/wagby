@@ -9,7 +9,7 @@ interface Question {
   id: string;
   text: string;
   options: string[];
-  correctOption: number;
+  correctOptions: number[];
   explanation: string;
   type: 'multiple_choice' | 'true_false' | 'essay';
   imageUrl: string | null;
@@ -24,7 +24,7 @@ interface PreviewModalProps {
 
 export function PreviewModal({ isOpen, onClose, title, questions }: PreviewModalProps) {
   const [currentQuestion, setCurrentQuestion] = useState(0);
-  const [selected, setSelected] = useState<number | null>(null);
+  const [selected, setSelected] = useState<number[]>([]);
   const [showExplanation, setShowExplanation] = useState(false);
 
   if (!isOpen || questions.length === 0) return null;
@@ -33,24 +33,42 @@ export function PreviewModal({ isOpen, onClose, title, questions }: PreviewModal
   const isLastQuestion = currentQuestion === questions.length - 1;
 
   const handleNext = () => {
-    if (question.type === 'essay' || selected !== null) {
+    if (question.type === 'essay' || selected.length > 0) {
       if (!isLastQuestion) {
         setCurrentQuestion(prev => prev + 1);
-        setSelected(null);
+        setSelected([]);
         setShowExplanation(false);
       } else {
         // Reset or close on last
         onClose();
         setCurrentQuestion(0);
-        setSelected(null);
+        setSelected([]);
         setShowExplanation(false);
       }
     }
   };
 
   const handleOptionSelect = (index: number) => {
-    setSelected(index);
-    if (index !== question.correctOption && question.explanation) {
+    const isAlreadySelected = selected.includes(index);
+    const correctCount = question.correctOptions.length || 1;
+
+    if (!isAlreadySelected && selected.length >= correctCount) {
+      if (correctCount === 1) {
+        setSelected([index]);
+        // Note: For single choice, we just replace. For multiple, we block.
+      } else {
+        return; // Block adding more than allowed
+      }
+    } else {
+      const next = isAlreadySelected 
+        ? selected.filter(idx => idx !== index)
+        : [...selected, index];
+      setSelected(next);
+    }
+
+    // Show explanation if any selected is wrong
+    const anyWrong = selected.some(idx => !question.correctOptions.includes(idx));
+    if (anyWrong && question.explanation) {
       setShowExplanation(true);
     } else {
       setShowExplanation(false);
@@ -152,25 +170,42 @@ export function PreviewModal({ isOpen, onClose, title, questions }: PreviewModal
                 [مساحة إجابة الطالب (نص أو صورة)]
               </div>
             ) : (
-              <div className={styles.optionsGrid}>
-                {question.options.map((option, index) => {
-                  if (question.type === 'true_false' && index > 1) return null;
-                  if (!option && question.type === 'multiple_choice') return null;
-                  
-                  return (
-                    <label key={index} className={styles.optionLabel}>
-                      <input 
-                        type="radio" 
-                        name="preview-option" 
-                        className={styles.optionInput} 
-                        checked={selected === index}
-                        onChange={() => handleOptionSelect(index)}
-                      />
-                      <span className={styles.optionText}>{option}</span>
-                    </label>
-                  );
-                })}
-              </div>
+                <div className={styles.optionsGrid}>
+                  {question.options.map((option, index) => {
+                    if (question.type === 'true_false' && index > 1) return null;
+                    if (!option && question.type === 'multiple_choice') return null;
+                    
+                    const isChecked = selected.includes(index);
+                    return (
+                      <label key={index} className={`${styles.optionLabel} ${isChecked ? styles.selected : ''}`}>
+                        <div 
+                          style={{
+                            position: 'relative',
+                            width: '24px', 
+                            height: '24px', 
+                            borderRadius: question.type === 'true_false' || question.correctOptions.length === 1 ? '50%' : '6px',
+                            border: '2px solid var(--primary)',
+                            backgroundColor: isChecked ? 'var(--primary)' : 'transparent',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            transition: 'all 0.2s',
+                            marginRight: '1rem'
+                          }}
+                          onClick={() => handleOptionSelect(index)}
+                        >
+                          {isChecked && (
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
+                              <polyline points="20 6 9 17 4 12"/>
+                            </svg>
+                          )}
+                        </div>
+                        <span className={styles.optionText}>{option}</span>
+                      </label>
+                    );
+                  })}
+                </div>
             )}
 
             {showExplanation && (
@@ -193,7 +228,7 @@ export function PreviewModal({ isOpen, onClose, title, questions }: PreviewModal
             <div style={{ marginTop: '2rem' }}>
               <Button 
                 onClick={handleNext} 
-                disabled={question.type !== 'essay' && selected === null}
+                disabled={question.type !== 'essay' && selected.length === 0}
                 variant="primary"
                 fullWidth
               >

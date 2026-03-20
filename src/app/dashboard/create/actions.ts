@@ -22,12 +22,13 @@ export type SaveHomeworkInput = {
   totalStudents?: number
   randomizeQuestions?: boolean
   randomizeAnswers?: boolean
+  hideResult?: boolean
   layout?: 'wizard' | 'scroll'
   questions: {
     id: string
     text: string
     options: string[]
-    correctOption: number
+    correctOptions: number[] // Changed from correctOption: number
     explanation?: string
     imageUrl?: string | null
     questionType?: 'multiple_choice' | 'true_false' | 'essay'
@@ -71,8 +72,8 @@ export async function saveHomework(data: SaveHomeworkInput) {
     if (!q.text || q.text.trim().length === 0) {
       return { error: `السؤال ${i + 1} يفتقر إلى النص` }
     }
-    if (q.questionType !== 'essay' && (q.correctOption === -1 || q.correctOption === undefined)) {
-      return { error: `السؤال ${i + 1}: يرجى اختيار الإجابة الصحيحة` }
+    if (q.questionType !== 'essay' && (!q.correctOptions || q.correctOptions.length === 0)) {
+      return { error: `السؤال ${i + 1}: يرجى اختيار إجابة واحدة صحيحة على الأقل` }
     }
   }
 
@@ -109,6 +110,7 @@ export async function saveHomework(data: SaveHomeworkInput) {
        total_students: data.totalStudents || 0,
        randomize_questions: data.randomizeQuestions || false,
        randomize_answers: data.randomizeAnswers || false,
+       hide_result: data.hideResult || false,
        layout: data.layout || 'wizard',
        ...(data.isPublished ? { published_at: new Date().toISOString() } : {})
     };
@@ -181,9 +183,19 @@ export async function saveHomework(data: SaveHomeworkInput) {
        shareCode = hwData.share_code;
     }
 
-    const optionMap = ['a', 'b', 'c', 'd'] as const
+    const optionMap = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'] as const
     const questionsToUpsert = data.questions.map((q, index) => {
        const isRealId = q.id.length > 15;
+       
+       // Handle multiple correct options
+       let correctAnswer = 'essay';
+       if (q.questionType !== 'essay') {
+         correctAnswer = q.correctOptions
+           .sort((a, b) => a - b)
+           .map(idx => optionMap[idx])
+           .join(',');
+       }
+
        return {
          ...(isRealId ? { id: q.id } : {}), // Only include ID if it's a real DB ID (UUID)
          homework_id: homeworkId,
@@ -192,7 +204,11 @@ export async function saveHomework(data: SaveHomeworkInput) {
          option_b: q.options[1] || '',
          option_c: q.options[2] || '',
          option_d: q.options[3] || '',
-         correct_answer: q.questionType === 'essay' ? 'essay' : optionMap[q.correctOption],
+         option_e: q.options[4] || '',
+         option_f: q.options[5] || '',
+         option_g: q.options[6] || '',
+         option_h: q.options[7] || '',
+         correct_answer: correctAnswer,
          explanation: q.explanation || null,
          image_url: q.imageUrl || null,
          question_type: q.questionType || 'multiple_choice',
@@ -201,14 +217,33 @@ export async function saveHomework(data: SaveHomeworkInput) {
        }
     })
     
-    if (questionsToUpsert.length > 0) {
-      const { error: qError } = await supabase.from('questions').upsert(questionsToUpsert)
-      if (qError) throw new Error(qError.message)
+    let savedQuestions: any[] = [];
+    const questionsToUpdate = questionsToUpsert.filter(q => 'id' in q);
+    const questionsToInsert = questionsToUpsert.filter(q => !('id' in q));
 
+    if (questionsToUpdate.length > 0) {
+      const { data: updated, error: uError } = await supabase
+        .from('questions')
+        .upsert(questionsToUpdate)
+        .select();
+      if (uError) throw new Error(uError.message);
+      if (updated) savedQuestions = [...savedQuestions, ...updated];
+    }
+
+    if (questionsToInsert.length > 0) {
+      const { data: inserted, error: iError } = await supabase
+        .from('questions')
+        .insert(questionsToInsert)
+        .select();
+      if (iError) throw new Error(iError.message);
+      if (inserted) savedQuestions = [...savedQuestions, ...inserted];
+    }
+
+    if (savedQuestions.length > 0) {
       // --- NEW: Sync submissions with edits (holistic re-evaluation) ---
       if (data.id) {
-        // 1. Calculate active question count from our local upsert list
-        const activeQuestions = questionsToUpsert.filter(q => q.order_index >= 0);
+        // 1. Calculate active question count
+        const activeQuestions = savedQuestions.filter(q => q.order_index >= 0);
         const activeCount = activeQuestions.length;
         
         // 2. Sync total_questions for all submissions to this homework
@@ -226,6 +261,7 @@ export async function saveHomework(data: SaveHomeworkInput) {
             .eq('question_id', q.id);
           
           // Mark matching selections as correct
+          // Note: for multiple correct options, we compare the full comma-separated string
           await supabase
             .from('answers')
             .update({ is_correct: true })
@@ -241,15 +277,27 @@ export async function saveHomework(data: SaveHomeworkInput) {
         
         if (subs && subs.length > 0) {
           for (const sub of subs) {
-            const { count: finalScore } = await supabase
+            // In a better world, we'd use a single SQL query with SUM(points) where is_correct = true
+            // but for now, we'll follow the existing logic of counting correct answers if points are 1
+            // Actually, we should check queston points
+            
+            const { data: correctAnswers } = await supabase
               .from('answers')
-              .select('*', { count: 'exact', head: true })
+              .select('question_id')
               .eq('submission_id', sub.id)
               .eq('is_correct', true);
             
+            let totalScore = 0;
+            if (correctAnswers && correctAnswers.length > 0) {
+              const correctQIds = correctAnswers.map(a => a.question_id);
+              totalScore = activeQuestions
+                .filter(q => correctQIds.includes(q.id))
+                .reduce((sum, q) => sum + (q.points || 1), 0);
+            }
+
             await supabase
               .from('submissions')
-              .update({ score: finalScore || 0 })
+              .update({ score: totalScore })
               .eq('id', sub.id);
           }
         }

@@ -3,9 +3,7 @@ import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { type RealtimeChannel } from '@supabase/supabase-js';
-import { LogoutButton } from '@/app/dashboard/LogoutButton';
 import { Logo } from '../ui/Logo';
-import { ThemeToggle } from '../ui/ThemeToggle';
 import styles from './Sidebar.module.css';
 
 // Simple SVG Icons
@@ -157,14 +155,6 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
               </div>
             </div>
           </Link>
-          <div className={styles.logoutWrapper}>
-            <div className={styles.themeToggleWrapper}>
-              <ThemeToggle />
-            </div>
-            <div style={{ flex: 1 }}>
-              <LogoutButton />
-            </div>
-          </div>
         </div>
       </aside>
     </>

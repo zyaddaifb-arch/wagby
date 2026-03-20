@@ -153,19 +153,28 @@ export function HomeworkList({ initialHomeworks }: HomeworkListProps) {
     try {
       const hw = await getHomeworkById(id);
       if (hw && hw.questions) {
-        const mappedQuestions = (hw.questions as any[]).sort((a,b)=>Number(a.order_index) - Number(b.order_index)).map(q => {
-          const options = [String(q.option_a), String(q.option_b), String(q.option_c), String(q.option_d)];
-          const qMap: Record<string, number> = { 'a': 0, 'b': 1, 'c': 2, 'd': 3 };
-          return {
-              id: String(q.id),
-              text: String(q.question_text),
-              options,
-              correctOption: qMap[String(q.correct_answer)] ?? 0,
-              explanation: q.explanation ? String(q.explanation) : '',
-              type: (q.question_type as 'multiple_choice' | 'true_false' | 'essay') || 'multiple_choice',
-              imageUrl: q.image_url ? String(q.image_url) : null
-          };
-        });
+          const mappedQuestions = (hw.questions as any[]).sort((a,b)=>Number(a.order_index) - Number(b.order_index)).map(q => {
+            const options = [
+              String(q.option_a), String(q.option_b), String(q.option_c), String(q.option_d),
+              String(q.option_e || ''), String(q.option_f || ''), String(q.option_g || ''), String(q.option_h || '')
+            ];
+            const qMap: Record<string, number> = { 'a': 0, 'b': 1, 'c': 2, 'd': 3, 'e': 4, 'f': 5, 'g': 6, 'h': 7 };
+            
+            // Parse multiple correct options
+            const correctOptions = q.correct_answer === 'essay' 
+              ? [] 
+              : (q.correct_answer || '').split(',').map((s: string) => qMap[s.trim()]).filter((idx: number | undefined) => idx !== undefined);
+
+            return {
+                id: String(q.id),
+                text: String(q.question_text),
+                options,
+                correctOptions,
+                explanation: q.explanation ? String(q.explanation) : '',
+                type: (q.question_type as 'multiple_choice' | 'true_false' | 'essay') || 'multiple_choice',
+                imageUrl: q.image_url ? String(q.image_url) : null
+            };
+          });
         setPreviewData({ title, questions: mappedQuestions });
       } else {
         alert('فشل في تحميل أسئلة الواجب.');

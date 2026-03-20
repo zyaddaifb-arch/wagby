@@ -46,8 +46,8 @@ export default async function StudentResultPage({
         explanation: 'البيانات الأصلية لهذا السؤال لم تعد متوفرة.'
       };
     }
-    const options = [q.option_a, q.option_b, q.option_c, q.option_d];
-    const optionMap: Record<string, number> = { 'a': 0, 'b': 1, 'c': 2, 'd': 3 };
+    const options = [q.option_a, q.option_b, q.option_c, q.option_d, q.option_e, q.option_f, q.option_g, q.option_h];
+    const optionMap: Record<string, number> = { 'a': 0, 'b': 1, 'c': 2, 'd': 3, 'e': 4, 'f': 5, 'g': 6, 'h': 7 };
     
     let studentAnswer = 'بدون إجابة';
     let correctAnswer = 'غير متوفر';
@@ -64,10 +64,19 @@ export default async function StudentResultPage({
         correctAnswer = 'يتم التقييم من قبل المعلم';
       }
     } else {
-      const correctIdx = optionMap[q.correct_answer];
-      const studentIdx = optionMap[ans.selected_option];
-      studentAnswer = options[studentIdx] || 'بدون إجابة';
-      correctAnswer = options[correctIdx] || 'غير متوفر';
+      const correctOptionsStr = q.correct_answer || '';
+      const selectedOptionsStr = ans.selected_option || '';
+      
+      const correctIndices = correctOptionsStr.split(',').map((s: string) => optionMap[s.trim()]).filter((idx: number | undefined) => idx !== undefined);
+      const selectedIndices = selectedOptionsStr.split(',').map((s: string) => optionMap[s.trim()]).filter((idx: number | undefined) => idx !== undefined);
+      
+      studentAnswer = selectedIndices.length > 0 
+        ? selectedIndices.map((idx: number) => options[idx]).filter(Boolean).join('، ') 
+        : 'بدون إجابة';
+        
+      correctAnswer = correctIndices.length > 0
+        ? correctIndices.map((idx: number) => options[idx]).filter(Boolean).join('، ')
+        : 'غير متوفر';
     }
 
     return {
@@ -88,41 +97,52 @@ export default async function StudentResultPage({
     <div className={styles.resultContainer}>
       <Card>
         <CardContent className={styles.resultCardContent}>
-          <div className={styles.resultCircle} style={{ borderColor: scoreColor, background: `${scoreColor}10` }}>
-            <span className={styles.scoreValue} style={{ color: scoreColor }}>{result.score}</span>
-            <span className={styles.scoreTotal}>من {totalPoints}</span>
-          </div>
           
-          <h1 className={styles.resultTitle}>نتيجتك يا {result.student_name}</h1>
-          <p className={styles.resultSubtitle}>
-            {isPendingGrading 
-              ? 'أحسنت تسليم الواجب! يوجد أسئلة مقالية قيد التصحيح من قبل المعلم ⏳'
-              : statusLabel === 'ممتاز' ? 'أحسنت! أداء ممتاز 🌟' : 
-                statusLabel === 'جيد' ? 'عمل جيد! يمكنك التحسن أكثر 👍' : 
-                'حاول مرة أخرى في المرات القادمة 💪'}
+          <h1 className={styles.resultTitle}>
+            {result.hideResult ? 'تم تسليم الواجب بنجاح! 🎊' : `أحسنت يا ${result.student_name.split(' ')[0]}! ✨`}
+          </h1>
+          <p className={styles.resultSubtitle} style={{ color: (isPendingGrading || result.hideResult) ? (result.hideResult ? 'var(--success)' : '#f59e0b') : undefined, fontSize: '1.4rem' }}>
+            {result.hideResult
+              ? 'أحسنت! تم استلام إجاباتك بنجاح.. بالتوفيق! 🚀'
+              : isPendingGrading 
+                ? 'عاش! سلمت الواجب بنجاح.. المستر هيصحح الأسئلة المقالية وهنبلغك بالدرجة النهائية فوراً ⏳'
+                : statusLabel === 'ممتاز' ? 'يا سلام عليك! أداء ممتاز ودرجة رائعة 🌟' : 
+                  statusLabel === 'جيد' ? 'بطل! عمل جميل وتقدر تحسن أكتر المرة الجاية 👍' : 
+                  'أحسنت المحاولة! كلنا بنتعلم، ركز المرة الجاية وهتقفلها 💪'}
           </p>
           
-          <div className={styles.rankingBox}>
-            <div className={styles.rankingFlex}>
-              <div>
-                <div className={styles.rankingLabel}>ترتيبك الآن</div>
-                <div className={styles.rankingPosition}>
-                  <span>{result.rank}</span>
-                  <small> من {result.totalStudents} {result.totalStudents > 10 ? 'طالباً' : 'طلاب'}</small>
+          {!result.hideResult && (
+            <div className={styles.statsContainer}>
+              <div className={styles.statCard}>
+                <span className={styles.statIcon}>🎯</span>
+                <span className={styles.statLabel}>{isPendingGrading ? 'الدرجة الحالية' : 'درجتك'}</span>
+                <div className={styles.statValue}>
+                  <span className={styles.statValueMain} style={{ color: isPendingGrading ? '#f59e0b' : scoreColor }}>{result.score}</span>
+                  <span className={styles.statValueSub}>/ {totalPoints}</span>
                 </div>
               </div>
-              
+
               {result.duration > 0 && (
-                <div className={styles.timeSpent}>
-                  <div className={styles.rankingLabel}>الوقت المستغرق</div>
-                  <div className={styles.timeValue}>
-                    <span className={styles.timeIcon}>⏱️</span>
-                    <span>{Math.floor(result.duration / 60)}:{(result.duration % 60).toString().padStart(2, '0')}</span>
+                <div className={styles.statCard}>
+                  <span className={styles.statIcon}>⏱️</span>
+                  <span className={styles.statLabel}>الوقت</span>
+                  <div className={styles.statValue}>
+                    <span className={styles.statValueMain}>{Math.floor(result.duration / 60)}:{(result.duration % 60).toString().padStart(2, '0')}</span>
                   </div>
                 </div>
               )}
+
+              <div className={styles.statCard}>
+                <span className={styles.statIcon}>📝</span>
+                <span className={styles.statLabel}>الحالة</span>
+                <div className={styles.statValue}>
+                  <span className={styles.statValueSub} style={{ color: isPendingGrading ? '#f59e0b' : 'var(--success)', fontWeight: 800 }}>
+                    {isPendingGrading ? 'قيد التصحيح' : 'مكتمل'}
+                  </span>
+                </div>
+              </div>
             </div>
-          </div>
+          )}
           
           <div className={styles.buttonWrapper}>
             <Link href={`/hw/${resolvedParams.id}`} style={{ width: '100%' }}>
@@ -134,71 +154,75 @@ export default async function StudentResultPage({
           
           <div className={styles.successNote}>
             <p>
-              {isPendingGrading ? (
-                <span style={{ color: '#f59e0b', fontWeight: 800 }}>⚠️ هذه الدرجة مؤقتة بانتظار تصحيح المعلم للأسئلة المقالية للحصول على الدرجة النهائية.</span>
-              ) : (
-                'تم حفظ إجاباتك ونتيجتك بنجاح. يمكنك مراجعة الإجابات بالأسفل.'
-              )}
+              {result.hideResult 
+                ? 'تم حفظ إجاباتك بنجاح. شكراً لك!'
+                : isPendingGrading ? (
+                  <span style={{ color: '#f59e0b', fontWeight: 800 }}>⚠️ هذه الدرجة مؤقتة بانتظار تصحيح المعلم للأسئلة المقالية للحصول على الدرجة النهائية.</span>
+                ) : (
+                  'تم حفظ إجاباتك ونتيجتك بنجاح. يمكنك مراجعة الإجابات بالأسفل.'
+                )}
             </p>
           </div>
         </CardContent>
       </Card>
 
       {/* Answer Review Section */}
-      <div className={styles.reviewSection}>
-        <h2 className={styles.reviewSectionTitle}>مراجعة الإجابات</h2>
-        {reviews.map((rev, idx) => (
-          <div key={idx} className={styles.reviewQuestionCard}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-              <div className={styles.reviewQuestionText}>{idx + 1}. {rev.questionText}</div>
-              <div style={{ padding: '0.25rem 0.5rem', backgroundColor: 'var(--accent)', color: 'var(--accent-foreground)', borderRadius: '0.5rem', fontSize: '0.85rem', fontWeight: 800 }}>
-                {rev.points} درجات
+      {!result.hideResult && (
+        <div className={styles.reviewSection}>
+          <h2 className={styles.reviewSectionTitle}>مراجعة الإجابات</h2>
+          {reviews.map((rev, idx) => (
+            <div key={idx} className={styles.reviewQuestionCard}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <div className={styles.reviewQuestionText}>{idx + 1}. {rev.questionText}</div>
+                <div style={{ padding: '0.25rem 0.5rem', backgroundColor: 'var(--accent)', color: 'var(--accent-foreground)', borderRadius: '0.5rem', fontSize: '0.85rem', fontWeight: 800 }}>
+                  {rev.points} درجات
+                </div>
               </div>
-            </div>
-            
-            {rev.imageUrl && (
-              <div className={styles.reviewImageWrapper}>
-                <img src={rev.imageUrl} alt="صورة السؤال" className={styles.reviewImage} />
-              </div>
-            )}
+              
+              {rev.imageUrl && (
+                <div className={styles.reviewImageWrapper}>
+                  <img src={rev.imageUrl} alt="صورة السؤال" className={styles.reviewImage} />
+                </div>
+              )}
 
-            {rev.questionType !== 'essay' || rev.pointsAwarded !== null ? (
-              <div className={`${styles.statusIndicator} ${rev.pointsAwarded > 0 ? styles.correct : styles.incorrect}`}>
-                {rev.pointsAwarded > 0 ? `✅ حصلت على ${rev.pointsAwarded} / ${rev.points}` : `❌ حصلت على 0 / ${rev.points}`}
-              </div>
-            ) : (
-              <div className={styles.statusIndicator} style={{ backgroundColor: 'rgba(245, 158, 11, 0.1)', color: '#f59e0b', fontWeight: 800 }}>
-                📝 قيد التصحيح ({rev.points} درجات)
-              </div>
-            )}
+              {rev.questionType !== 'essay' || rev.pointsAwarded !== null ? (
+                <div className={`${styles.statusIndicator} ${rev.pointsAwarded > 0 ? styles.correct : styles.incorrect}`}>
+                  {rev.pointsAwarded > 0 ? `✅ حصلت على ${rev.pointsAwarded} / ${rev.points}` : `❌ حصلت على 0 / ${rev.points}`}
+                </div>
+              ) : (
+                <div className={styles.statusIndicator} style={{ backgroundColor: 'rgba(245, 158, 11, 0.1)', color: '#f59e0b', fontWeight: 800 }}>
+                  📝 قيد التصحيح ({rev.points} درجات)
+                </div>
+              )}
 
-            <div className={styles.answerGrid}>
-              <div className={styles.answerBox}>
-                <span className={styles.answerLabel}>إجابتك</span>
-                <span className={styles.answerValue}>{rev.studentAnswer}</span>
-                {rev.studentImageUrl && (
-                  <div style={{ marginTop: '0.5rem' }}>
-                    <img src={rev.studentImageUrl} alt="صورة إجابة الطالب" style={{ maxWidth: '100%', borderRadius: '0.5rem', border: '1px solid var(--border)' }} />
+              <div className={styles.answerGrid}>
+                <div className={styles.answerBox}>
+                  <span className={styles.answerLabel}>إجابتك</span>
+                  <span className={styles.answerValue}>{rev.studentAnswer}</span>
+                  {rev.studentImageUrl && (
+                    <div style={{ marginTop: '0.5rem' }}>
+                      <img src={rev.studentImageUrl} alt="صورة إجابة الطالب" style={{ maxWidth: '100%', borderRadius: '0.5rem', border: '1px solid var(--border)' }} />
+                    </div>
+                  )}
+                </div>
+                {rev.questionType !== 'essay' && !rev.isCorrect && (
+                  <div className={styles.answerBox} style={{ borderColor: 'var(--success)' }}>
+                    <span className={styles.answerLabel}>الإجابة الصحيحة</span>
+                    <span className={styles.answerValue} style={{ color: 'var(--success)' }}>{rev.correctAnswer}</span>
                   </div>
                 )}
               </div>
-              {rev.questionType !== 'essay' && !rev.isCorrect && (
-                <div className={styles.answerBox} style={{ borderColor: 'var(--success)' }}>
-                  <span className={styles.answerLabel}>الإجابة الصحيحة</span>
-                  <span className={styles.answerValue} style={{ color: 'var(--success)' }}>{rev.correctAnswer}</span>
+
+              {!rev.isCorrect && rev.explanation && (
+                <div className={styles.explanationBox}>
+                  <span className={styles.explanationTitle}>تفسير المعلم:</span>
+                  <div className={styles.explanationText}>{rev.explanation}</div>
                 </div>
               )}
             </div>
-
-            {!rev.isCorrect && rev.explanation && (
-              <div className={styles.explanationBox}>
-                <span className={styles.explanationTitle}>تفسير المعلم:</span>
-                <div className={styles.explanationText}>{rev.explanation}</div>
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
 
       {/* Marketing Section */}
       <div className={styles.marketingBanner}>

@@ -2,7 +2,6 @@
 import React from 'react';
 import Link from 'next/link';
 import { Logo } from '../ui/Logo';
-import { ThemeToggle } from '../ui/ThemeToggle';
 import styles from './MobileHeader.module.css';
 
 interface MobileHeaderProps {
@@ -30,9 +29,7 @@ export function MobileHeader({ onMenuOpen }: MobileHeaderProps) {
       <div className={styles.logoPlaceholder}>
         <Logo hideTextOnMobile={true} />
       </div>
-      <div className={styles.spacer} aria-hidden="true" style={{ display: 'flex', justifyContent: 'flex-end', paddingLeft: '1rem' }}>
-        <ThemeToggle />
-      </div>
+      <div className={styles.spacer} aria-hidden="true" style={{ width: '40px' }} />
     </header>
   );
 }
