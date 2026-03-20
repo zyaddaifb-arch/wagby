@@ -123,7 +123,8 @@ export function SolveQuizClient({
     if (timeLeft === null) return;
     if (timeLeft <= 0) {
       if (!isSubmitting) {
-        handleSubmit(true);
+        // Stop timer, let user click submit manually to follow their request
+        // "الواجب ما يتمش تسليمه غير لما أنا بنفسي أدوس"
       }
       return;
     }
@@ -263,6 +264,7 @@ export function SolveQuizClient({
       setIsSubmitting(false);
     } else {
       playSound('success');
+      // Revalidate results pages to show new submission
       router.push(`/hw/${shareCode}/result?sub=${result.submissionId}`);
     }
   };

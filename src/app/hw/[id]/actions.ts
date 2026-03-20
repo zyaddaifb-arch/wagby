@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/utils/supabase/server'
+import { revalidatePath } from 'next/cache'
 
 export async function getHomeworkByShareCode(shareCode: string) {
   const supabase = await createClient()
@@ -203,6 +204,11 @@ export async function submitHomework(data: SubmissionInput) {
     }
     return { error: subError.message }
   }
+
+
+  // Revalidate teacher's dashboard results
+  revalidatePath('/dashboard/results');
+  revalidatePath(`/dashboard/results/${hw.id}`);
 
   return { success: true, submissionId }
 }
