@@ -126,6 +126,21 @@
   margin-bottom: 0.5rem;
 }
 
+.qInputRow {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  align-items: flex-start;
+}
+
+.qTextContainer {
+  flex: 1;
+}
+
+.qPointsContainer {
+  width: 120px;
+}
+
 .optionsList {
   display: flex;
   flex-direction: column;
@@ -307,22 +322,27 @@
   }
 
   .formContent {
-    padding: 1.5rem !important;
-    gap: 1.75rem;
+    padding: 1rem 0.25rem !important; /* Extremely minimal side space */
+    gap: 1.5rem;
   }
 
   .qContent {
-    padding: 1.25rem !important;
+    padding: 1.25rem 0.5rem !important; /* Minimal card internal padding */
     gap: 1.25rem;
   }
 
   .qHeader {
-    padding: 1rem 1.25rem !important;
+    padding: 0.75rem 0.6rem !important; /* Tight header */
     gap: 0.5rem;
   }
 
   .qTitle {
     font-size: 1.05rem !important;
+  }
+
+  .qTextInput label {
+    font-size: 0.85rem !important;
+    margin-bottom: 0.25rem !important;
   }
 
   /* Wizard action buttons: stack and reverse on mobile so primary is first */

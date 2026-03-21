@@ -49,7 +49,7 @@
 
 @media (max-width: 768px) {
   :root {
-    --container-px: 0.75rem;
+    --container-px: 1.25rem;
     --section-py: 4rem;
     --header-height: 4rem;
   }

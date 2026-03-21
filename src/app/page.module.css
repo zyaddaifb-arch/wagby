@@ -478,8 +478,9 @@
 
 .features {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 2.5rem;
+  justify-content: center;
 }
 
 .featureCard {
@@ -609,3 +610,200 @@
   }
 }
 
+
+/* How It Works Section */
+.howItWorksWrapper {
+  padding: 6rem 0;
+}
+
+.stepsSection {
+  padding: 5rem;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border);
+  border-radius: 3rem;
+  width: 100%;
+}
+
+.stepsGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 3rem;
+  position: relative;
+}
+
+.stepCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 1.5rem;
+  position: relative;
+}
+
+.stepNumber {
+  width: 4rem;
+  height: 4rem;
+  background: var(--glass-bg);
+  border: 1px solid var(--primary);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  font-weight: 900;
+  color: var(--primary);
+  box-shadow: 0 0 20px var(--primary-glow);
+  z-index: 2;
+}
+
+.stepIcon {
+  color: var(--primary);
+  opacity: 0.8;
+}
+
+.stepCard h3 {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--foreground);
+}
+
+.stepCard p {
+  color: var(--muted-foreground);
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+/* Testimonials */
+.testimonialsSection {
+  padding: 8rem 0;
+}
+
+.testimonialsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2.5rem;
+  width: 100%;
+}
+
+.testimonialCard {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  padding: 2.5rem;
+  border-radius: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  transition: all 0.3s ease;
+}
+
+.testimonialCard:hover {
+  border-color: var(--primary);
+  transform: translateY(-5px);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+}
+
+.testimonialQuote {
+  font-size: 1.125rem;
+  line-height: 1.7;
+  color: var(--foreground);
+  font-style: italic;
+  position: relative;
+}
+
+.testimonialQuote::before {
+  content: '"';
+  font-size: 4rem;
+  color: var(--primary);
+  opacity: 0.2;
+  position: absolute;
+  top: -2rem;
+  right: -1rem;
+}
+
+.authorInfo {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-top: auto;
+}
+
+.authorAvatar {
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: 50%;
+  background: var(--gradient-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  font-size: 1.25rem;
+  color: white;
+  box-shadow: var(--shadow-sm);
+}
+
+.authorName {
+  font-weight: 800;
+  color: var(--foreground);
+  font-size: 1rem;
+}
+
+.authorRole {
+  display: block;
+  font-size: 0.85rem;
+  color: var(--muted-foreground);
+  font-weight: 400;
+}
+
+/* Final CTA Section */
+.finalCtaWrapper {
+  padding: 8rem 0;
+}
+
+.ctaCard {
+  background: var(--glass-bg);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--glass-border);
+  padding: 5rem 2rem;
+  border-radius: 3rem;
+  max-width: 900px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2.5rem;
+  box-shadow: 0 40px 100px -20px rgba(0,0,0,0.5);
+  border: 1px solid var(--primary);
+}
+
+.ctaCard h2 {
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  font-weight: 900;
+  line-height: 1.2;
+}
+
+@media (max-width: 768px) {
+  .howItWorksWrapper, .testimonialsSection, .finalCtaWrapper {
+    padding: 3rem 0;
+  }
+
+  .stepsGrid {
+    grid-template-columns: 1fr;
+    gap: 3.5rem;
+  }
+  
+  .stepsSection {
+    padding: 3.5rem 1.25rem;
+    border-radius: 2rem;
+  }
+
+  .testimonialsGrid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    padding: 0 0.5rem;
+  }
+
+  .ctaCard {
+    padding: 4rem 1.5rem;
+    border-radius: 2rem;
+  }
+}

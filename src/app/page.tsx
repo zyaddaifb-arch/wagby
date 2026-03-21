@@ -17,7 +17,11 @@ import {
   LayoutDashboard,
   ClipboardList,
   Settings,
-  Users
+  Users,
+  PlusCircle,
+  Share2,
+  TrendingUp,
+  Quote
 } from 'lucide-react';
 
 export default function LandingPage() {
@@ -213,6 +217,111 @@ export default function LandingPage() {
                 <p>راقب أداء فصلك بوضوح وتعرف على نقاط الضعف والقوة بلمحة بصر.</p>
               </div>
             </div>
+        </section>
+
+        {/* How It Works Section */}
+        <section className={styles.howItWorksWrapper}>
+          <div className="container">
+            <div className={`${styles.stepsSection} animate-fade-in-up`}>
+              <div className={styles.sectionHeader}>
+                <h2 className={styles.sectionTitle}>كيف يعمل واجـبي؟</h2>
+                <p className={styles.sectionSubtitle}>ثلاث خطوات بسيطة تفصلك عن الراحة التامة.</p>
+              </div>
+
+              <div className={styles.stepsGrid}>
+                <div className={styles.stepCard}>
+                  <div className={styles.stepNumber}>١</div>
+                  <PlusCircle className={styles.stepIcon} size={48} />
+                  <h3>أنشئ واجبك</h3>
+                  <p>أضف أسئلتك بسهولة، اختر نوع الإجابة، وحدد الدرجات في لحظات.</p>
+                </div>
+
+                <div className={styles.stepCard}>
+                  <div className={styles.stepNumber}>٢</div>
+                  <Share2 className={styles.stepIcon} size={48} />
+                  <h3>شارك الكود</h3>
+                  <p>أرسل الرابط أو كود الواجب لطلابك عبر منصات التواصل الاجتماعي.</p>
+                </div>
+
+                <div className={styles.stepCard}>
+                  <div className={styles.stepNumber}>٣</div>
+                  <TrendingUp className={styles.stepIcon} size={48} />
+                  <h3>تابع النتائج</h3>
+                  <p>شاهد تصحيحاً تلقائياً وتقارير مفصلة لكل طالب بمجرد انتهائه.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Testimonials Section */}
+        <section className={styles.testimonialsSection}>
+          <div className={`container`}>
+            <div className={styles.sectionHeader}>
+              <h2 className={styles.sectionTitle}>قالوا عن واجـبي</h2>
+              <p className={styles.sectionSubtitle}>انضم لآلاف المعلمين الذين غيرت المنصة حياتهم المهنية.</p>
+            </div>
+
+            <div className={styles.testimonialsGrid}>
+              <div className={styles.testimonialCard}>
+                <p className={styles.testimonialQuote}>
+                  "كنت أقضي ساعات في تصحيح الأوراق، أما الآن فالمنصة تقوم بكل شيء بدلاً عني. وفرت لي وقتاً لا يُقدر بثمن."
+                </p>
+                <div className={styles.authorInfo}>
+                  <div className={styles.authorAvatar}>أ</div>
+                  <div className={styles.authorName}>
+                    أ. أحمد محمود
+                    <span className={styles.authorRole}>مدرس لغة عربية</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className={styles.testimonialCard}>
+                <p className={styles.testimonialQuote}>
+                  "طلاب فصلي أصبحوا يتسابقون لحل الواجبات بسبب سهولة المنصة وجمال تصميمها. شكراً للقائمين عليها."
+                </p>
+                <div className={styles.authorInfo}>
+                  <div className={styles.authorAvatar}>س</div>
+                  <div className={styles.authorName}>
+                    أ. سارة علي
+                    <span className={styles.authorRole}>مدرسة علوم</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className={styles.testimonialCard}>
+                <p className={styles.testimonialQuote}>
+                  "أكثر ما أعجبني هو سهولة مشاركة الواجب عبر واتساب، والتقارير الفورية التي تعطيني نظرة دقيقة عن مستوى فصلي."
+                </p>
+                <div className={styles.authorInfo}>
+                  <div className={styles.authorAvatar}>م</div>
+                  <div className={styles.authorName}>
+                    أ. محمد خالد
+                    <span className={styles.authorRole}>مدرس رياضيات</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Final CTA */}
+        <section className={styles.finalCtaWrapper}>
+          <div className="container">
+             <div className={`${styles.ctaCard} animate-fade-in-up`}>
+                <h2 className="premium-gradient-text">جاهز لتوفير وقتك اليوم؟</h2>
+                <p className={styles.sectionSubtitle}>لا تضيع دقيقة أخرى في التصحيح اليدوي. انضم إلى واجبي الآن.</p>
+                <Link href="/signup">
+                  <Button 
+                    size="lg" 
+                    className={styles.ctaButton}
+                    style={{ fontSize: '1.25rem' }}
+                  >
+                    ابدأ رحلتك مجاناً <ArrowRight size={20} style={{ marginRight: '10px' }} />
+                  </Button>
+                </Link>
+             </div>
+          </div>
         </section>
       </main>
     </>

@@ -776,30 +776,40 @@ function CreateForm() {
                 </div>
               </div>
 
-              <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', alignItems: 'flex-start' }}>
-                <div style={{ flex: 1 }}>
-                  <Input 
-                    id={`q-text-${qIndex}`}
-                    placeholder="مثال: ما وحدة القوة في النظام الدولي؟" 
-                    className={styles.qTextInput}
-                    value={q.text}
-                    onChange={(e) => updateQuestionText(q.id, e.target.value)}
-                    required
-                    label="نص السؤال"
-                  />
+              <div style={{ marginBottom: '1.5rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.6rem' }}>
+                   <label style={{ fontSize: '0.95rem', fontWeight: 800, color: 'var(--foreground)', opacity: 0.9 }}>نص السؤال</label>
+                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <label style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--muted-foreground)' }}>الدرجة:</label>
+                      <input 
+                        type="number"
+                        min={1}
+                        value={q.points}
+                        onChange={(e) => updateQuestionPoints(q.id, parseInt(e.target.value) || 1)}
+                        className={styles.compactPointsInput}
+                        style={{
+                          width: '50px',
+                          height: '2.5rem',
+                          borderRadius: '0.5rem',
+                          border: '2px solid var(--input-border)',
+                          backgroundColor: 'var(--input)',
+                          color: 'var(--foreground)',
+                          textAlign: 'center',
+                          fontSize: '1rem',
+                          fontWeight: 'bold'
+                        }}
+                      />
+                   </div>
                 </div>
-                <div style={{ width: '120px' }}>
-                  <Input 
-                    id={`q-points-${qIndex}`}
-                    type="number"
-                    min={1}
-                    value={q.points}
-                    onChange={(e) => updateQuestionPoints(q.id, parseInt(e.target.value) || 1)}
-                    required
-                    label="الدرجة"
-                    style={{ textAlign: 'center' }}
-                  />
-                </div>
+                <Input 
+                  id={`q-text-${qIndex}`}
+                  placeholder="مثال: ما وحدة القوة في النظام الدولي؟" 
+                  className={styles.qTextInput}
+                  value={q.text}
+                  onChange={(e) => updateQuestionText(q.id, e.target.value)}
+                  required
+                  // No label here since we added a custom one above
+                />
               </div>
 
               <div style={{ marginBottom: '1.5rem' }}>
