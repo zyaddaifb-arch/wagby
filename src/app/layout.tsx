@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Tajawal } from "next/font/google";
 import Script from "next/script";
+import { Analytics } from "@vercel/analytics/react";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import "./globals.css";
 
@@ -50,6 +51,7 @@ export default function RootLayout({
           enableSystem={false}
         >
           {children}
+          <Analytics />
         </ThemeProvider>
       </body>
     </html>
