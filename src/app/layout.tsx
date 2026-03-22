@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Tajawal } from "next/font/google";
+import Script from "next/script";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import "./globals.css";
 
@@ -28,6 +29,20 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ar" dir="rtl" suppressHydrationWarning>
+      <head>
+        <Script
+          strategy="afterInteractive"
+          src="https://www.googletagmanager.com/gtag/js?id=G-PZSMFD3K6Z"
+        />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-PZSMFD3K6Z');
+          `}
+        </Script>
+      </head>
       <body className={`${tajawal.variable} antialiased`}>
         <ThemeProvider
           attribute="data-theme"
